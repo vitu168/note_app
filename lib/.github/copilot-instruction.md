@@ -86,14 +86,225 @@ The app supports light/dark themes, reminders, favorites, archive, search, and u
 
 ---
 
-## UI Guidelines
+## UI Design Guidelines
 
-- Use gradients and soft backgrounds for main screens.backgrounds for main screens.
-- Use rounded corners and subtle shadows for cards and dialogs. subtle shadows for cards and dialogs.
-- Use clear, friendly labels and icons.abels and icons.
-- All forms should use `TextFormField` with validation. `TextFormField` with validation.
-- Use modern, accessible color schemes.
-- Maintain visual consistency across all screens.- Maintain visual consistency across all screens.
+### Colors
+- **Primary Colors:**
+  - Primary: `#6366F1` (Indigo)
+  - Primary Light: `#8B5CF6` (Violet)
+  - Primary Dark: `#4F46E5` (Dark Indigo)
+
+- **Secondary Colors:**
+  - Secondary: `#EC4899` (Pink)
+  - Secondary Light: `#F472B6` (Light Pink)
+  - Secondary Dark: `#DB2777` (Dark Pink)
+
+- **Accent Colors:**
+  - Accent: `#F59E0B` (Amber)
+  - Accent Light: `#FCD34D` (Light Amber)
+  - Accent Dark: `#D97706` (Dark Amber)
+
+- **Neutral Colors:**
+  - White: `#FFFFFF`
+  - Black: `#000000`
+  - Gray Scale: 50-900 (from `#F9FAFB` to `#111827`)
+
+- **Semantic Colors:**
+  - Success: `#10B981` (Emerald)
+  - Warning: `#F59E0B` (Amber)
+  - Error: `#EF4444` (Red)
+  - Info: `#3B82F6` (Blue)
+
+- **Background Colors:**
+  - Light Background: `#FAFAFA`
+  - Dark Background: `#121212`
+  - Light Surface: `#FFFFFF`
+  - Dark Surface: `#1E1E1E`
+
+- **Note Colors:** 8 predefined colors for note backgrounds (Light Yellow, Blue, Green, Red, Gray, Pink, Purple, Mint)
+
+### Typography
+- **Font Families:**
+  - Primary: Poppins (Google Fonts)
+  - Secondary: Inter (Google Fonts)
+  - Monospace: JetBrains Mono (Google Fonts)
+
+- **Font Sizes:**
+  - XS: 10px
+  - SM: 12px
+  - MD: 14px
+  - LG: 16px
+  - XL: 18px
+  - XXL: 20px
+  - XXXL: 24px
+  - XXXXL: 28px
+  - XXXXXL: 32px
+
+- **Font Weights:**
+  - Light: 300
+  - Regular: 400
+  - Medium: 500
+  - SemiBold: 600
+  - Bold: 700
+  - ExtraBold: 800
+
+- **Line Heights:**
+  - Tight: 1.2
+  - Normal: 1.4
+  - Relaxed: 1.6
+  - Loose: 1.8
+
+- **Letter Spacing:**
+  - Tight: -0.5px
+  - Normal: 0px
+  - Wide: 0.5px
+  - Extra Wide: 1.0px
+
+### Spacing & Layout
+- **Border Radius:**
+  - Small: 4px
+  - Medium: 8px
+  - Large: 12px
+  - Extra Large: 16px
+  - Round: 24px (for buttons, FABs)
+
+- **Padding:**
+  - XS: 4px
+  - SM: 8px
+  - MD: 16px
+  - LG: 24px
+  - XL: 32px
+  - XXL: 48px
+
+- **Margins:**
+  - Same scale as padding (4px to 48px)
+
+- **Shadows:**
+  - Light Shadow: `rgba(0, 0, 0, 0.1)`
+  - Medium Shadow: `rgba(0, 0, 0, 0.15)`
+  - Dark Shadow: `rgba(0, 0, 0, 0.25)`
+
+### Buttons
+- **Primary Button:**
+  - Background: Primary gradient (Indigo to Violet)
+  - Text: White
+  - Font: Button Medium (14px, SemiBold)
+  - Border Radius: 24px
+  - Padding: 16px horizontal, 12px vertical
+  - Elevation: 2dp
+
+- **Secondary Button:**
+  - Background: Transparent
+  - Border: 1px solid Primary
+  - Text: Primary
+  - Font: Button Medium (14px, SemiBold)
+  - Border Radius: 24px
+  - Padding: 16px horizontal, 12px vertical
+
+- **Text Button:**
+  - Background: Transparent
+  - Text: Primary
+  - Font: Button Small (12px, SemiBold)
+  - Padding: 8px horizontal, 4px vertical
+
+- **FAB (Floating Action Button):**
+  - Background: Primary
+  - Icon: White, 24px
+  - Size: 56px
+  - Border Radius: 28px (circular)
+  - Elevation: 6dp
+
+### Cards & Surfaces
+- **Note Cards:**
+  - Border Radius: 12px
+  - Elevation: 2dp (light mode), 4dp (dark mode)
+  - Padding: 16px
+  - Background: Note colors or surface color
+
+- **Dialog Cards:**
+  - Border Radius: 16px
+  - Elevation: 8dp
+  - Padding: 24px
+  - Background: Surface color
+
+- **List Items:**
+  - Border Radius: 8px
+  - Padding: 16px
+  - Background: Surface color with subtle opacity
+
+### Form Elements
+- **Text Fields:**
+  - Border Radius: 12px
+  - Border: 1px solid Gray 300 (inactive), Primary (active)
+  - Padding: 16px
+  - Font: Body Medium (14px, Regular)
+  - Background: Surface color
+
+- **Dropdowns:**
+  - Same as text fields
+  - Icon: Chevron down (20px)
+
+- **Checkboxes & Switches:**
+  - Active Color: Primary
+  - Inactive Color: Gray 400
+  - Size: 24px (checkbox), 48px width (switch)
+
+### Icons
+- **Sizes:**
+  - Small: 16px
+  - Medium: 20px
+  - Large: 24px
+  - Extra Large: 32px
+
+- **Colors:**
+  - Primary: Primary color
+  - Secondary: Gray 600
+  - Accent: Accent color
+  - Error: Error color
+
+### Animations
+- **Duration:**
+  - Fast: 150ms
+  - Normal: 300ms
+  - Slow: 500ms
+
+- **Easing:**
+  - Standard: `Curves.easeInOut`
+  - Enter: `Curves.easeOut`
+  - Exit: `Curves.easeIn`
+
+### Responsive Design
+- **Breakpoints:**
+  - Mobile: < 640px
+  - Tablet: 640px - 1024px
+  - Desktop: > 1024px
+
+- **Grid:**
+  - Columns: 4 (mobile), 8 (tablet), 12 (desktop)
+  - Gutter: 16px
+  - Margin: 16px
+
+### Dark Mode
+- **Color Mapping:**
+  - Background: Dark Background (#121212)
+  - Surface: Dark Surface (#1E1E1E)
+  - Text Primary: Light Gray (#F9FAFB)
+  - Text Secondary: Medium Gray (#9CA3AF)
+  - Shadows: Light shadows with white tint
+
+### Accessibility
+- **Contrast Ratios:**
+  - Normal Text: 4.5:1 minimum
+  - Large Text: 3:1 minimum
+  - Icons: 3:1 minimum
+
+- **Touch Targets:**
+  - Minimum Size: 44px x 44px
+  - Recommended Size: 48px x 48px
+
+- **Focus Indicators:**
+  - Border: 2px solid Primary
+  - Border Radius: 4px
 
 ------
 
