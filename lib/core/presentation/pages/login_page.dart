@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -74,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
                       fillColor: Theme.of(context)
                           .colorScheme
                           .surface
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                       fillColor: Theme.of(context)
                           .colorScheme
                           .surface
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -131,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: !_isPasswordVisible,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return 'Please enter password';
                       }
                       if (value.length < 6) {
                         return 'Password must be at least 6 characters';
@@ -149,7 +149,6 @@ class _LoginPageState extends State<LoginPage> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // TODO: Implement forgot password
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                               content: Text('Forgot password coming soon!')),
@@ -173,7 +172,6 @@ class _LoginPageState extends State<LoginPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // TODO: Implement login logic
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -216,12 +214,11 @@ class _LoginPageState extends State<LoginPage> {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                         ),
                       ),
                       TextButton(
                         onPressed: () {
-                          // TODO: Navigate to Sign Up page
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Sign Up coming soon!')),

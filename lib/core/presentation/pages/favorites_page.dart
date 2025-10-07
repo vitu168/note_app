@@ -97,7 +97,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                       )
                     : null,
                 filled: true,
-                fillColor: theme.colorScheme.surface.withOpacity(0.1),
+                fillColor: theme.colorScheme.surface.withValues(alpha: 0.1),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -105,7 +105,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary.withOpacity(0.13),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.13),
                     width: 1.5,
                   ),
                 ),

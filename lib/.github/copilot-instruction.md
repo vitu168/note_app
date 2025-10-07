@@ -329,4 +329,62 @@ The app supports light/dark themes, reminders, favorites, archive, search, and u
 
 ---
 
+---
+
+## Custom Loading Animation Widget
+
+### Overview
+The app includes a beautiful, friendly, animated circular loading indicator called `LoadingAnimation`. This widget is fully consistent with the app's design system, using primary/secondary colors and smooth, modern animation.
+
+### Features
+- Animated cycle line (arc) with smooth sweep and rotation
+- Uses `AppColors.primary` and `AppColors.primaryLight` for color consistency
+- Customizable size, line width, and animation duration
+- Background circle for subtle, friendly appearance
+- Reusable anywhere a loading state is needed
+
+### Usage Example
+```
+import 'package:note_app/core/presentation/components/loading_animation.dart';
+
+// In your widget tree:
+const LoadingAnimation();
+```
+
+#### Example Page
+See `lib/core/presentation/pages/loading_animation_example_page.dart` for a full example page demonstrating the loading animation in context:
+
+```
+import 'package:flutter/material.dart';
+import '../components/loading_animation.dart';
+
+class LoadingAnimationExamplePage extends StatelessWidget {
+  const LoadingAnimationExamplePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Loading Animation Example')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const LoadingAnimation(),
+            const SizedBox(height: 24),
+            const Text('Loading... Please wait'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Design Notes
+- The animation duration and arc sweep are tuned for a friendly, non-distracting effect
+- Colors and sizing follow the design system (see Color & Typography sections above)
+- Prefer this widget over the default `CircularProgressIndicator` for a more branded, delightful experience
+
+---
+
 **End of Copilot Instructions**

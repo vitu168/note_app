@@ -29,7 +29,7 @@ class _AddNotePageState extends State<AddNotePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _selectedColor.withOpacity(0.10),
+      backgroundColor: _selectedColor.withValues(alpha: 0.10),
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
@@ -99,7 +99,7 @@ class _AddNotePageState extends State<AddNotePage> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.18),
+                          .withValues(alpha: 0.18),
                       width: 1.2,
                     ),
                   ),
@@ -167,7 +167,7 @@ class _AddNotePageState extends State<AddNotePage> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.18),
+                          .withValues(alpha: 0.18),
                       width: 1.2,
                     ),
                   ),
@@ -233,7 +233,7 @@ class _AddNotePageState extends State<AddNotePage> {
                       backgroundColor: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.09),
+                          .withValues(alpha: 0.09),
                       foregroundColor: Theme.of(context).colorScheme.primary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -321,7 +321,7 @@ class _AddNotePageState extends State<AddNotePage> {
                               boxShadow: _selectedColor == color
                                   ? [
                                       BoxShadow(
-                                        color: color.withOpacity(0.22),
+                                        color: color.withValues(alpha: 0.22),
                                         blurRadius: 6,
                                         spreadRadius: 1,
                                       )
@@ -371,7 +371,6 @@ class _AddNotePageState extends State<AddNotePage> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // TODO: Save note logic
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                               content:

@@ -20,7 +20,8 @@ class SettingsPage extends StatelessWidget {
             // Profile Card
             Card(
               elevation: 0,
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+              color:
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
               ),
@@ -39,7 +40,7 @@ class SettingsPage extends StatelessWidget {
                             color: Theme.of(context)
                                 .colorScheme
                                 .primary
-                                .withOpacity(0.10),
+                                .withValues(alpha: 0.10),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -48,7 +49,7 @@ class SettingsPage extends StatelessWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.18),
+                              .withValues(alpha: 0.18),
                           width: 2,
                         ),
                       ),
@@ -57,7 +58,7 @@ class SettingsPage extends StatelessWidget {
                         backgroundColor: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.13),
+                            .withValues(alpha: 0.13),
                         child: Icon(Icons.person,
                             size: 38,
                             color: Theme.of(context).colorScheme.primary),
@@ -86,7 +87,7 @@ class SettingsPage extends StatelessWidget {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -98,7 +99,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.08),
+                          .withValues(alpha: 0.08),
                       shape: const CircleBorder(),
                       child: InkWell(
                         customBorder: const CircleBorder(),
@@ -135,7 +136,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 value: helperProvider.isDarkMode,
                 onChanged: (value) {
@@ -163,7 +164,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 value: true,
                 onChanged: (value) {
@@ -188,14 +189,16 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 trailing: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.07),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.07),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -240,7 +243,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 value: false,
                 onChanged: (value) {
@@ -272,7 +275,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 value: false,
                 onChanged: (value) {
@@ -304,7 +307,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 trailing: const Icon(Icons.delete_outline, color: Colors.red),
                 shape: RoundedRectangleBorder(
@@ -353,7 +356,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 trailing: Icon(Icons.feedback_outlined,
                     color: Theme.of(context).colorScheme.primary),
@@ -381,7 +384,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 trailing: const Icon(Icons.logout, color: Colors.red),
                 shape: RoundedRectangleBorder(
@@ -430,7 +433,7 @@ class SettingsPage extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7)),
+                          .withValues(alpha: 0.7)),
                 ),
                 trailing: Icon(Icons.info_outline,
                     color: Theme.of(context).colorScheme.primary),

@@ -36,7 +36,7 @@ class WelcomePage extends StatelessWidget {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blueAccent.withOpacity(0.12),
+                color: Colors.blueAccent.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -48,7 +48,7 @@ class WelcomePage extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.purpleAccent.withOpacity(0.10),
+                color: Colors.purpleAccent.withValues(alpha: 0.10),
               ),
             ),
           ),
@@ -61,7 +61,7 @@ class WelcomePage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
-                color: Colors.white.withOpacity(0.93),
+                color: Colors.white.withValues(alpha: 0.93),
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
@@ -72,7 +72,7 @@ class WelcomePage extends StatelessWidget {
                       CircleAvatar(
                         radius: 48,
                         backgroundColor:
-                            theme.colorScheme.primary.withOpacity(0.12),
+                            theme.colorScheme.primary.withValues(alpha: 0.12),
                         child: Icon(
                           Icons.sticky_note_2_rounded,
                           size: 56,
@@ -96,7 +96,7 @@ class WelcomePage extends StatelessWidget {
                         'Organize your thoughts, ideas, and tasks in one beautiful place.',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -148,7 +148,7 @@ class WelcomePage extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             side: BorderSide(
-                              color: theme.colorScheme.primary.withOpacity(0.5),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.5),
                               width: 1.5,
                             ),
                             shape: RoundedRectangleBorder(
@@ -171,7 +171,7 @@ class WelcomePage extends StatelessWidget {
                         '© 2025 Note App',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     ],

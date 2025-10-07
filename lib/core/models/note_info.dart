@@ -30,6 +30,8 @@ class NoteInfo {
     );
   }
 
+  bool get isFavorite => null;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

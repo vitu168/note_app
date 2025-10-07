@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/presentation/components/loading_indicator_animation.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
 import 'package:note_app/core/presentation/pages/settings_page.dart';
 import 'package:note_app/core/presentation/pages/add_note_page.dart';
@@ -111,8 +114,10 @@ class _HomePageState extends State<HomePage> {
               },
               child: CircleAvatar(
                 radius: 18,
-                backgroundColor:
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
                 child: Icon(Icons.person,
                     color: Theme.of(context).colorScheme.primary),
               ),
@@ -144,7 +149,7 @@ class _HomePageState extends State<HomePage> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blueAccent.withOpacity(0.12),
+                color: Colors.blueAccent.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -156,7 +161,7 @@ class _HomePageState extends State<HomePage> {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.purpleAccent.withOpacity(0.10),
+                color: Colors.purpleAccent.withValues(alpha: 0.10),
               ),
             ),
           ),
@@ -184,8 +189,10 @@ class _HomePageState extends State<HomePage> {
                           )
                         : null,
                     filled: true,
-                    fillColor:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                    fillColor: Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.1),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -196,7 +203,7 @@ class _HomePageState extends State<HomePage> {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.13),
+                            .withValues(alpha: 0.13),
                         width: 1.5,
                       ),
                     ),
@@ -285,7 +292,7 @@ class _HomePageState extends State<HomePage> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity(0.07),
+                                  .withValues(alpha: 0.07),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: DropdownButtonHideUnderline(
@@ -304,7 +311,7 @@ class _HomePageState extends State<HomePage> {
                                         Theme.of(context).colorScheme.primary),
                                 items: [
                                   DropdownMenuItem(
-                                    value: 'Date',
+                                    value: 'Date Range',
                                     child: Row(
                                       children: [
                                         Icon(Icons.calendar_today_rounded,
@@ -352,6 +359,24 @@ class _HomePageState extends State<HomePage> {
                                 onChanged: (value) {
                                   setState(() {
                                     _sortOption = value!;
+                                    _notes.sort((a, b) {
+                                      switch (_sortOption) {
+                                        case 'Title':
+                                          return (a.name ?? '')
+                                              .toLowerCase()
+                                              .compareTo(
+                                                  (b.name ?? '').toLowerCase());
+                                        case 'Favorites':
+                                          return (b.isFavorite ? 1 : 0)
+                                              .compareTo(a.isFavorite ? 1 : 0);
+                                        case 'Date Range':
+                                        default:
+                                          return b.updatedAt?.compareTo(
+                                                  a.updatedAt ??
+                                                      DateTime.now()) ??
+                                              0;
+                                      }
+                                    });
                                   });
                                 },
                               ),
@@ -368,7 +393,7 @@ class _HomePageState extends State<HomePage> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity(0.07),
+                                  .withValues(alpha: 0.07),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: IconButton(
@@ -405,7 +430,7 @@ class _HomePageState extends State<HomePage> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withOpacity(0.5),
+                                    .withValues(alpha: 0.5),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -416,7 +441,7 @@ class _HomePageState extends State<HomePage> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .primary
-                                      .withOpacity(0.7),
+                                      .withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -469,7 +494,6 @@ class _HomePageState extends State<HomePage> {
                                       );
                                     },
                                     onLongPress: () {
-                                      // TODO: Show context menu (share, delete, etc.)
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
@@ -577,7 +601,7 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.13),
+                            .withValues(alpha: 0.13),
                         child: Icon(
                           notifications[i]['title'] == 'Reminder'
                               ? Icons.alarm_rounded
@@ -626,6 +650,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _LoadingRefresh() async {
+    final completer = Completer<void>();
+    Future.delayed(const Duration(seconds: 2), () {
+      completer.complete();
+    });
+    return completer.future;
+  }
+
+  Widget _buildLoadingIndicator() {
+    return SizedBox(
+      child: const LoadingAnimation(
+        size: 50,
+        color: Colors.blueAccent,
+      ),
+    );
+  }
+
   void _showProfileDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -647,8 +688,10 @@ class _HomePageState extends State<HomePage> {
               ),
               CircleAvatar(
                 radius: 44,
-                backgroundColor:
-                    Theme.of(context).colorScheme.primary.withOpacity(0.13),
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.13),
                 child: Icon(Icons.person,
                     size: 48, color: Theme.of(context).colorScheme.primary),
               ),
@@ -667,15 +710,17 @@ class _HomePageState extends State<HomePage> {
                     .profileEmail, // e.g. john.doe@example.com
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 22),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.edit_rounded, size: 18),
+                  icon: const Icon(Icons.edit_rounded, size: 16),
                   label: Text(
                     AppLocalizations.of(context).editProfile,
                     style: GoogleFonts.poppins(
@@ -712,7 +757,7 @@ class _HomePageState extends State<HomePage> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                       width: 1.3,
                     ),
                     shape: RoundedRectangleBorder(
