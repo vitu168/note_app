@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:note_app/core/presentation/pages/login_page.dart';
-import 'main_page.dart';
+import 'package:note_app/core/presentation/auth/login_page.dart';
+import '../pages/main_page.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -13,16 +13,15 @@ class WelcomePage extends StatelessWidget {
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          // Portfolio-style gradient background
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFe0eafc), // Soft blue
-                  Color(0xFFcfdef3), // Soft purple/blue
-                  Color(0xFFf9f6f7), // Soft white
+                  Color(0xFFe0eafc), 
+                  Color(0xFFcfdef3),
+                  Color(0xFFf9f6f7),
                 ],
               ),
             ),
@@ -96,14 +95,15 @@ class WelcomePage extends StatelessWidget {
                         'Organize your thoughts, ideas, and tasks in one beautiful place.',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.7),
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 40),
                       // Get Started Button
                       SizedBox(
-                        width: 100,
+                        width: double.infinity,
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.arrow_forward_rounded),
                           label: Text(
@@ -134,7 +134,7 @@ class WelcomePage extends StatelessWidget {
                       const SizedBox(height: 16),
                       // Continue as Guest Button
                       SizedBox(
-                        width: 100,
+                        width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.person_outline_rounded),
                           label: Text(
@@ -148,7 +148,8 @@ class WelcomePage extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             side: BorderSide(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.5),
                               width: 1.5,
                             ),
                             shape: RoundedRectangleBorder(
@@ -171,7 +172,8 @@ class WelcomePage extends StatelessWidget {
                         '© 2025 Note App',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.5),
                         ),
                       ),
                     ],

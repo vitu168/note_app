@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:note_app/core/presentation/pages/archive_page.dart';
-import 'package:note_app/core/presentation/pages/favorites_page.dart';
-import 'package:note_app/core/presentation/pages/home_page.dart';
-import 'package:note_app/core/presentation/pages/settings_page.dart';
+import 'package:note_app/core/presentation/pages/archive_page/archive_page.dart';
+import 'package:note_app/core/presentation/pages/favorites_page/favorites_page.dart';
+import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
+import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
 import 'package:note_app/l10n/app_localizations.dart';

@@ -28,12 +28,23 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Logo or App Name
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(  
+                        Icons.note_alt,
+                        size: 80,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 800),
                   child: Text(
-                    'Welcome Back',
+                    'Welcome Back!',
                     style: GoogleFonts.poppins(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -58,15 +69,29 @@ class _LoginPageState extends State<LoginPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: 32),
-                // Email Field
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1200),
                   child: TextFormField(
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    cursorColor: Theme.of(context).colorScheme.primary,
                     controller: _emailController,
                     decoration: InputDecoration(
                       labelText: 'Email',
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.error,
+                          width: 2,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
                       labelStyle: GoogleFonts.poppins(),
                       prefixIcon: Icon(Icons.email,
                           color: Theme.of(context).colorScheme.primary),
@@ -94,13 +119,26 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Password Field
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1400),
                   child: TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.error,
+                          width: 2,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
                       labelText: 'Password',
                       labelStyle: GoogleFonts.poppins(),
                       prefixIcon: Icon(Icons.lock,
@@ -141,7 +179,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Forgot Password
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1600),

@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/presentation/components/loading_indicator_animation.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
-import 'package:note_app/core/presentation/pages/settings_page.dart';
-import 'package:note_app/core/presentation/pages/add_note_page.dart';
+import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
+import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,8 +20,6 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _sortOption = 'Date';
   bool _isGridView = true;
-
-  // Sample notes for UI testing
   final List<NoteInfo> _notes = [
     NoteInfo(
       id: 1,
