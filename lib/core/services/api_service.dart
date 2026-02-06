@@ -9,7 +9,7 @@ class ApiService {
 
   ApiService._internal() {
     _dio = Dio(BaseOptions(
-      baseUrl: 'https://jsonplaceholder.typicode.com', // Example API base URL
+      baseUrl: 'https://jsonplaceholder.typicode.com',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {

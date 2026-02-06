@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/models/note_info.dart';
-import 'package:note_app/core/presentation/components/loading_indicator_animation.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
@@ -73,16 +71,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
 
-      drawer: Drawer(
-        child: SingleChildScrollView(
-          child: SafeArea(
-            child: AboutListTile(
-              icon: Icon(Icons.info),
-              applicationIcon: Icon(Icons.flutter_dash),
-            ),
-          ),
-        ),
-      ),
+
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -643,23 +632,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Future<void> _LoadingRefresh() async {
-    final completer = Completer<void>();
-    Future.delayed(const Duration(seconds: 2), () {
-      completer.complete();
-    });
-    return completer.future;
-  }
-
-  Widget _buildLoadingIndicator() {
-    return SizedBox(
-      child: const LoadingAnimation(
-        size: 50,
-        color: Colors.blueAccent,
       ),
     );
   }

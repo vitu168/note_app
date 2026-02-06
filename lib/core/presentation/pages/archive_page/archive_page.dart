@@ -77,7 +77,6 @@ class _ArchivePageState extends State<ArchivePage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           children: [
-            // Search bar
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -119,7 +118,6 @@ class _ArchivePageState extends State<ArchivePage> {
               onChanged: (value) => setState(() {}),
             ),
             const SizedBox(height: 16),
-            // Notes list/grid or empty state
             Expanded(
               child: filteredNotes.isEmpty
                   ? Column(
