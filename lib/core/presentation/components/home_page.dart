@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/components/item_gap.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
+import 'package:note_app/core/presentation/utils/user_utils.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
@@ -11,7 +12,6 @@ import 'package:note_app/core/data/supabase/auth_service.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:note_app/core/presentation/utils/user_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
