@@ -7,23 +7,11 @@ import 'package:flutter/services.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/core/constants/color_constant.dart';
 import 'package:note_app/core/constants/font_constant.dart';
-
-/// A small, theme-aware and mobile-friendly toast overlay.
-///
-/// Usage:
-/// ```dart
-/// Toast.show(context, 'Saved successfully', type: ToastType.success);
-/// ```
 class Toast {
   Toast._();
 
   static final _queue = <_ToastEntry>[];
   static bool _showing = false;
-
-  /// Show a toast message.
-  ///
-  /// [context] is required. [message] is the text to display.
-  /// Customize appearance with [type], [duration], or [backgroundColor].
   static void show(
     BuildContext context,
     String message, {
@@ -57,7 +45,6 @@ class Toast {
     _showing = true;
     final entry = _queue.removeAt(0);
     await entry._show();
-    // small delay between toasts
     await Future.delayed(const Duration(milliseconds: 150));
     _showNext();
   }

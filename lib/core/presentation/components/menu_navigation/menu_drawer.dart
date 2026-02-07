@@ -4,10 +4,6 @@ import 'package:note_app/core/constants/font_constant.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
-/// A reusable Drawer widget that centralizes the app's side menu UI.
-///
-/// Provide [onItemSelected] to handle navigation index selections from the
-/// parent widget (e.g., `MainPage`).
 class MenuDrawer extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int>? onItemSelected;
@@ -28,7 +24,7 @@ class MenuDrawer extends StatelessWidget {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.06),
+                color: AppColors.primary.withValues(alpha: 0.06),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(AppDimensions.radius),
                   bottomRight: Radius.circular(AppDimensions.radius),
@@ -68,7 +64,6 @@ class MenuDrawer extends StatelessWidget {
               padding: const EdgeInsets.all(AppDimensions.spacingSmall),
               child: TextButton.icon(
                 onPressed: () {
-                  // Example: settings or sign out fallback
                   if (onItemSelected != null) onItemSelected!(3);
                 },
                 icon: const Icon(Icons.logout_rounded, size: AppDimensions.iconSmall),
@@ -86,15 +81,43 @@ class MenuDrawer extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, {required int index, required IconData icon, required String label}) {
     final selected = index == selectedIndex;
-    return ListTile(
-      selected: selected,
-      selectedTileColor: AppColors.primary.withOpacity(0.08),
-      leading: Icon(icon, color: selected ? AppColors.primary : AppColors.textSecondaryLight),
-      title: Text(label, style: AppFonts.labelMedium.copyWith(color: selected ? AppColors.primary : AppColors.getTextPrimary(context))),
-      onTap: () {
-        Navigator.of(context).pop();
-        if (onItemSelected != null) onItemSelected!(index);
-      },
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: selected ? AppColors.primary.withValues(alpha: 0.03) : Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).pop();
+            if (onItemSelected != null) onItemSelected!(index);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              children: [
+                Container(
+                  width: AppDimensions.iconLarge,
+                  height: AppDimensions.iconLarge,
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: selected ? AppColors.primary : AppColors.textSecondaryLight, size: AppDimensions.icon),
+                ),
+                const SizedBox(width: AppDimensions.spacing),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AppFonts.labelMedium.copyWith(color: selected ? AppColors.primary : AppColors.getTextPrimary(context)),
+                  ),
+                ),
+                if (selected)
+                  Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: AppDimensions.iconSmall),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

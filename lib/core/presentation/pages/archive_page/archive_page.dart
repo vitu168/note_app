@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/core/models/note_info.dart'; // <-- use this import
+import 'package:note_app/core/presentation/pages/archive_page/archive_page_provider.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:note_app/core/constants/color_constant.dart';
+import 'package:note_app/core/constants/font_constant.dart';
+import 'package:note_app/core/constants/properties_constant.dart';
+import 'package:note_app/core/presentation/components/form_text_input.dart';
+import 'package:note_app/core/presentation/components/empty_data.dart';
+import 'package:provider/provider.dart';
 
 class ArchivePage extends StatefulWidget {
   const ArchivePage({super.key});
@@ -14,23 +19,19 @@ class _ArchivePageState extends State<ArchivePage> {
   final TextEditingController _searchController = TextEditingController();
   bool _isGridView = false;
 
-  // Sample static notes (update to match NoteInfo fields)
-  final List<NoteInfo> notes = [
-    NoteInfo(
-      id: 2,
-      name: 'Archived Note',
-      description: 'This is an archived note.',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      userId: 'user1',
-    ),
-    // Add more sample notes if needed
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ArchivePageProvider>().loadArchived();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final filteredNotes = notes
+    final provider = context.watch<ArchivePageProvider>();
+    final filteredNotes = provider.archived
         .where((n) =>
             (n.name ?? '')
                 .toLowerCase()
@@ -47,14 +48,12 @@ class _ArchivePageState extends State<ArchivePage> {
         title: Row(
           children: [
             Icon(Icons.archive_rounded, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDimensions.spacing),
             Text(
               'Archive',
-              style: GoogleFonts.poppins(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
+              style: AppFonts.heading5.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -77,62 +76,49 @@ class _ArchivePageState extends State<ArchivePage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           children: [
-            TextField(
-              controller: _searchController,
+            FormTextInput(
+              label: 'Search',
+              initialValue: _searchController.text,
+              onChanged: (v) => setState(() => _searchController.text = v),
+              prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary),
               decoration: InputDecoration(
-                hintText: 'Search archive...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
-                prefixIcon: Icon(Icons.search_rounded,
-                    color: theme.colorScheme.primary),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon:
-                            Icon(Icons.clear, color: theme.colorScheme.primary),
-                        onPressed: () {
-                          setState(() => _searchController.clear());
-                        },
-                      )
-                    : null,
+                hintText: 'Search',
                 filled: true,
-                fillColor: theme.colorScheme.surface.withValues(alpha: 0.1),
+                fillColor: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.1),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLarge),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLarge),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.13),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.13),
                     width: 1.5,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLarge),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     width: 2.0,
                   ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
-              onChanged: (value) => setState(() {}),
             ),
             const SizedBox(height: 16),
             Expanded(
               child: filteredNotes.isEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.archive_outlined,
-                            size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No archived notes',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16, color: Colors.grey[600]),
-                        ),
-                      ],
-                    )
+                  ? const EmptyData(message: 'No archived notes')
                   : _isGridView
                       ? GridView.builder(
                           itemCount: filteredNotes.length,

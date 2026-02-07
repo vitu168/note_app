@@ -5,8 +5,7 @@ import 'package:note_app/core/presentation/pages/favorites_page/favorites_page.d
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/theme/app_theme.dart';
-import 'package:note_app/core/presentation/components/menu_navigation/bottom_navigation.dart';
-import 'package:note_app/core/presentation/components/menu_navigation/menu_drawer.dart';
+import 'package:note_app/core/presentation/components/menu_navigation/menu_navigation.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
 
 class NoteApp extends StatelessWidget {
@@ -51,9 +50,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      // global drawer so menu is available from all pages
       drawer: MenuDrawer(selectedIndex: _selectedIndex, onItemSelected: _onItemTapped),
-      // No appBar here!
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,

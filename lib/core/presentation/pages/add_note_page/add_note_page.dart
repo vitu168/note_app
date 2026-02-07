@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/l10n/app_localizations.dart';
+import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 
 class AddNotePage extends StatefulWidget {
   const AddNotePage({super.key});
@@ -371,14 +372,12 @@ class _AddNotePageState extends State<AddNotePage> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text(AppLocalizations.of(context).noteSaved)),
-                        );
+                        showToast(context, AppLocalizations.of(context).noteSaved);
                         Navigator.pop(context);
                       }
                     },
+                    // add toast import
+
                   ),
                 ],
               ),

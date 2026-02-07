@@ -4,13 +4,30 @@ import 'package:provider/provider.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
+import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
+import 'package:note_app/core/presentation/pages/favorites_page/favorites_page_provider.dart';
+import 'package:note_app/core/presentation/pages/archive_page/archive_page_provider.dart';
+import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_provider.dart';
 import 'l10n/app_localizations.dart';
 
-void main() {
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/config/supabase_config.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+  );
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => HelperProvider()),
+        ChangeNotifierProvider(create: (_) => HomePageProvider()),
+        ChangeNotifierProvider(create: (_) => FavoritesPageProvider()),
+        ChangeNotifierProvider(create: (_) => ArchivePageProvider()),
+        ChangeNotifierProvider(create: (_) => NoteDetailPageProvider()),
       ],
       child: const NoteApp(),
     ),

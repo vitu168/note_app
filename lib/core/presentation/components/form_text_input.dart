@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
+import 'package:note_app/core/presentation/components/item_gap.dart';
 
 class FormTextInput extends StatefulWidget {
-  final String label;
+  final String? label;
   final TextEditingController? controller;
   final String? initialValue;
 
@@ -27,10 +28,11 @@ class FormTextInput extends StatefulWidget {
   final bool expands;
   final AutovalidateMode? autovalidateMode;
   final EdgeInsetsGeometry contentPadding;
+  final String? hintText;
 
   const FormTextInput({
     super.key,
-    required this.label,
+    this.label,
     this.controller,
     this.initialValue,
     this.onChanged,
@@ -51,6 +53,7 @@ class FormTextInput extends StatefulWidget {
     this.expands = false,
     this.autovalidateMode,
     this.contentPadding = AppDimensions.paddingAllSmall,
+    this.hintText,
   });
 
   @override
@@ -72,7 +75,6 @@ class _FormTextInputState extends State<FormTextInput> {
   }
 
   void _onControllerChanged() {
-    // Rebuild to show/hide clear button / counter etc.
     if (mounted) setState(() {});
   }
 
@@ -156,6 +158,7 @@ class _FormTextInputState extends State<FormTextInput> {
       prefixIcon: widget.prefixIcon != null ? Padding(padding: const EdgeInsets.only(left: 8, right: 8), child: widget.prefixIcon) : null,
       suffixIcon: _buildSuffix(context),
       counterText: widget.maxLength == null ? null : null,
+      hintText: widget.hintText,
     );
   }
 
@@ -166,15 +169,15 @@ class _FormTextInputState extends State<FormTextInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
+        if (widget.label != null) Text(
+          widget.label!,
           style: GoogleFonts.poppins(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w500,
             fontSize: AppDimensions.textMedium,
           ),
         ),
-        SizedBox(height: AppDimensions.spacingSmall),
+        itemGap(),
         TextFormField(
           controller: _effectiveController,
           onChanged: (v) => widget.onChanged?.call(v),

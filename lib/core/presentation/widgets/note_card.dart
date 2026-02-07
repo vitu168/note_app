@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 
 class NoteCard extends StatelessWidget {
   final NoteInfo note;
@@ -70,10 +71,7 @@ class NoteCard extends StatelessWidget {
                     if (onEdit != null) {
                       onEdit!();
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Edit functionality coming soon!')),
-                      );
+                      showToast(context, 'Edit functionality coming soon!');
                     }
                   },
                 ),
@@ -85,10 +83,7 @@ class NoteCard extends StatelessWidget {
                     if (onDelete != null) {
                       onDelete!();
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Delete functionality coming soon!')),
-                      );
+                      showToast(context, 'Delete functionality coming soon!');
                     }
                   },
                 ),

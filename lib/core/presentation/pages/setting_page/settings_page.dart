@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:note_app/l10n/app_localizations.dart';
+import 'package:note_app/core/data/supabase/auth_service.dart';
+import 'package:note_app/core/presentation/auth/welcome_page.dart';
+import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -67,34 +70,42 @@ class SettingsPage extends StatelessWidget {
                     const SizedBox(width: 20),
                     // Name and email
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Mr Vithu',
-                            style: GoogleFonts.poppins(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).colorScheme.primary,
-                              letterSpacing: 0.1,
+                      child: Builder(builder: (ctx) {
+                        final user = AuthService.currentUser();
+                        final meta = user?.userMetadata;
+                        final displayName = meta != null
+                            ? (meta['name'] ?? meta['full_name'] ?? meta['preferred_username'] ?? meta['display_name'])?.toString()
+                            : null;
+                        final name = displayName ?? user?.email?.split('@').first ?? 'User';
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: GoogleFonts.poppins(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.primary,
+                                letterSpacing: 0.1,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            'langvitu081@gmail.com',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.7),
-                              fontWeight: FontWeight.w400,
+                            const SizedBox(height: 3),
+                            Text(
+                              user?.email ?? 'Email',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        );
+                      }),
                     ),
-                    // Edit button
                     Material(
                       color: Theme.of(context)
                           .colorScheme
@@ -168,9 +179,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 value: true,
                 onChanged: (value) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('View preference updated')),
-                  );
+                  showToast(context, 'View preference updated');
                 },
                 activeColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
@@ -329,11 +338,7 @@ class SettingsPage extends StatelessWidget {
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      '${AppLocalizations.of(context).clearNotes}!')),
-                            );
+                              showToast(context, '${AppLocalizations.of(context).clearNotes}!');
                           },
                           child: Text(AppLocalizations.of(context).clear,
                               style: GoogleFonts.poppins(color: Colors.red)),
@@ -363,11 +368,7 @@ class SettingsPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            AppLocalizations.of(context).feedbackComingSoon)),
-                  );
+                  showToast(context, AppLocalizations.of(context).feedbackComingSoon);
                 },
               ),
             ),
@@ -404,13 +405,32 @@ class SettingsPage extends StatelessWidget {
                               style: GoogleFonts.poppins()),
                         ),
                         TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      '${AppLocalizations.of(context).logout}!')),
+                          onPressed: () async {
+                            Navigator.pop(context); // close confirmation dialog
+
+                            // show loading
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => const Center(child: CircularProgressIndicator()),
                             );
+
+                            try {
+                              await AuthService.signOut();
+                              Navigator.pop(context); // close loading
+
+                              // Navigate to welcome/login screen and clear stack
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (_) => const WelcomePage()),
+                                (route) => false,
+                              );
+
+                              showToast(context, '${AppLocalizations.of(context).logout} successful');
+                            } catch (e) {
+                              Navigator.pop(context); // close loading
+                              showToast(context, 'Logout failed: $e');
+                            }
                           },
                           child: Text(AppLocalizations.of(context).logout,
                               style: GoogleFonts.poppins(color: Colors.red)),

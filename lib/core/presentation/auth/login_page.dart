@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:note_app/core/presentation/components/item_gap.dart';
 import 'package:note_app/core/presentation/pages/main_page.dart';
+import 'package:note_app/core/constants/color_constant.dart';
+import 'package:note_app/core/constants/font_constant.dart';
+import 'package:note_app/core/constants/properties_constant.dart';
+import 'package:note_app/core/presentation/components/form_text_input.dart';
+import 'package:note_app/core/presentation/auth/signup_page.dart';
+import 'package:note_app/core/data/supabase/auth_service.dart';
+import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
+import 'package:note_app/core/presentation/components/toast.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,7 +21,6 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +38,11 @@ class _LoginPageState extends State<LoginPage> {
                 Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(AppDimensions.spacing),
                       child: Icon(  
                         Icons.note_alt,
-                        size: 80,
-                        color: Theme.of(context).colorScheme.primary,
+                        size: AppDimensions.iconLarge * 2,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -45,128 +52,73 @@ class _LoginPageState extends State<LoginPage> {
                   duration: const Duration(milliseconds: 800),
                   child: Text(
                     'Welcome Back!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                    style: AppFonts.heading2.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: 8),
+                itemGap(height: 8),
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1000),
                   child: Text(
                     'Log in to your Note App account',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                    ),
+                    style: AppFonts.bodyMedium.copyWith(color: AppColors.getTextSecondary(context).withOpacity(0.7)),
                     textAlign: TextAlign.center,
                   ),
                 ),
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1200),
-                  child: TextFormField(
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    cursorColor: Theme.of(context).colorScheme.primary,
+                  child: FormTextInput(
+                    label: 'Email',
+                    hintText: 'Enter your email',
                     controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.error,
-                          width: 2,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      labelStyle: GoogleFonts.poppins(),
-                      prefixIcon: Icon(Icons.email,
-                          color: Theme.of(context).colorScheme.primary),
-                      filled: true,
-                      fillColor: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.1),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value)) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
                     },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: const Duration(milliseconds: 1400),
-                  child: TextFormField(
-                    controller: _passwordController,
+                    prefixIcon: Icon(Icons.email, color: AppColors.primary),
                     decoration: InputDecoration(
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                         borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.error,
-                          width: 2,
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.13),
+                          width: 1.5,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                         borderSide: BorderSide(
                           color: Theme.of(context).colorScheme.primary,
-                          width: 2,
+                          width: 2.0,
                         ),
                       ),
-                      labelText: 'Password',
-                      labelStyle: GoogleFonts.poppins(),
-                      prefixIcon: Icon(Icons.lock,
-                          color: Theme.of(context).colorScheme.primary),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.1),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
-                    obscureText: !_isPasswordVisible,
+                  
+                  ),
+                ),
+                itemGap(),
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: const Duration(milliseconds: 1400),
+                  child: FormTextInput(
+                    label: 'Password',
+                    hintText: 'Enter your password',
+                    controller: _passwordController,
+                    obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter password';
@@ -176,9 +128,18 @@ class _LoginPageState extends State<LoginPage> {
                       }
                       return null;
                     },
+                    prefixIcon: Icon(Icons.lock, color: AppColors.primary),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                itemGap(),
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1600),
@@ -193,51 +154,75 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       child: Text(
                         'Forgot Password?',
-                        style: GoogleFonts.poppins(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 14,
-                        ),
+                        style: AppFonts.labelMedium.copyWith(color: AppColors.primary),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                // Login Button
+                itemGap(),
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 1800),
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MainPage()),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Logged in successfully!')),
-                        );
+                    onPressed: () async {
+                      if (!_formKey.currentState!.validate()) return;
+
+                      final email = _emailController.text.trim();
+                      final password = _passwordController.text;
+
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(child: CircularProgressIndicator()),
+                      );
+
+                      try {
+                        await AuthService.signIn(email, password);
+                        Navigator.pop(context);
+                        final user = AuthService.currentUser();
+                        if (user != null) {
+                          final meta = user.userMetadata;
+                          final displayName = meta != null
+                              ? (meta['name'] ?? meta['full_name'] ?? meta['preferred_username'] ?? meta['display_name'])?.toString()
+                              : null;
+                          final name = displayName ?? user.email?.split('@').first ?? 'there';
+
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const MainPage()),
+                          );
+                          showToast(
+                            context,
+                            'Welcome back, $name! 🎉',
+                            type: ToastType.success,
+                            duration: const Duration(seconds: 4),
+                            icon: Icons.celebration,
+                            withHaptic: true,
+                          );
+                        } else {
+                          showToast(context, 'Login failed');
+                        }
+                      } catch (e) {
+                        Navigator.pop(context);
+                        showToast(context, 'Login error: $e');
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                       ),
-                      elevation: 2,
+                      elevation: AppDimensions.elevationLow,
                     ),
                     child: Text(
                       'Log In',
-                      style: GoogleFonts.poppins(
-                          fontSize: 16, fontWeight: FontWeight.w600),
+                      style: AppFonts.labelLargeBold,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                // Sign Up Link
+                itemGap(),
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 2000),
@@ -246,28 +231,18 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Text(
                         'Don’t have an account? ',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.7),
-                        ),
+                        style: AppFonts.bodySmall.copyWith(color: AppColors.getTextSecondary(context).withOpacity(0.7)),
                       ),
                       TextButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Sign Up coming soon!')),
-                          );
+                          Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SignUpPage()),
+                        );
                         },
                         child: Text(
                           'Sign Up',
-                          style: GoogleFonts.poppins(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: AppFonts.labelMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],

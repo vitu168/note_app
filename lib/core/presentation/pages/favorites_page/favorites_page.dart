@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/presentation/pages/favorites_page/favorites_page_provider.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:note_app/core/constants/color_constant.dart';
+import 'package:note_app/core/constants/font_constant.dart';
+import 'package:note_app/core/constants/properties_constant.dart';
+import 'package:note_app/core/presentation/components/form_text_input.dart';
+import 'package:note_app/core/presentation/components/empty_data.dart';
+import 'package:provider/provider.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -14,25 +19,19 @@ class _FavoritesPageState extends State<FavoritesPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _isGridView = false;
 
-  // Sample static notes (add isFavorite logic if needed)
-  final List<NoteInfo> notes = [
-    NoteInfo(
-      id: 1,
-      name: 'Favorite Note',
-      description: 'This is a favorite note.',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      userId: 'user1',
-      // Add isFavorite if you extend NoteInfo in the future
-    ),
-    // Add more sample notes if needed
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavoritesPageProvider>().loadFavorites();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final filteredNotes = notes
-        // If you add isFavorite to NoteInfo, filter here. For now, show all.
+    final provider = context.watch<FavoritesPageProvider>();
+    final filteredNotes = provider.favorites
         .where((n) =>
             (n.name ?? '')
                 .toLowerCase()
@@ -49,14 +48,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
         title: Row(
           children: [
             Icon(Icons.star_rounded, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDimensions.spacing),
             Text(
               'Favorites',
-              style: GoogleFonts.poppins(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
+              style: AppFonts.heading5.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -79,64 +76,50 @@ class _FavoritesPageState extends State<FavoritesPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           children: [
-            // Search bar
-            TextField(
-              controller: _searchController,
+            FormTextInput(
+              label: 'Search',
+              initialValue: _searchController.text,
+              onChanged: (v) => setState(() => _searchController.text = v),
+              prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary),
               decoration: InputDecoration(
-                hintText: 'Search favorites...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
-                prefixIcon: Icon(Icons.search_rounded,
-                    color: theme.colorScheme.primary),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon:
-                            Icon(Icons.clear, color: theme.colorScheme.primary),
-                        onPressed: () {
-                          setState(() => _searchController.clear());
-                        },
-                      )
-                    : null,
+                hintText: 'Search...',
                 filled: true,
-                fillColor: theme.colorScheme.surface.withValues(alpha: 0.1),
+                fillColor: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.1),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLarge),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLarge),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.13),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.13),
                     width: 1.5,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusLarge),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     width: 2.0,
                   ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
-              onChanged: (value) => setState(() {}),
             ),
             const SizedBox(height: 16),
             // Notes list/grid or empty state
             Expanded(
               child: filteredNotes.isEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.star_border_rounded,
-                            size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No favorited notes',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16, color: Colors.grey[600]),
-                        ),
-                      ],
-                    )
+                  ? const EmptyData(message: 'No favorited notes')
                   : _isGridView
                       ? GridView.builder(
                           itemCount: filteredNotes.length,
