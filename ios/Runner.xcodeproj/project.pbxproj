@@ -665,9 +665,6 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
-				// Development team placeholder - set with the helper script or in Xcode
-				// Example: DEVELOPMENT_TEAM = ABCDE12345;
-				DEVELOPMENT_TEAM = $(DEVELOPMENT_TEAM);
 			};
 			name = Debug;
 		};
@@ -684,14 +681,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.examplenoteApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.noteApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
-				// Development team placeholder - set with the helper script or in Xcode
-				// Example: DEVELOPMENT_TEAM = ABCDE12345;
-				DEVELOPMENT_TEAM = $(DEVELOPMENT_TEAM);
 			};
 			name = Release;
 		};
