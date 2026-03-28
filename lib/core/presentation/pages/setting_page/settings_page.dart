@@ -168,6 +168,30 @@ class SettingsPage extends StatelessWidget {
               delay: 100,
               child: _settingCard(
                 context: context,
+                child: ListTile(
+                  leading: _leadingIcon(context, Icons.color_lens, color: helperProvider.primaryColor),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  title: Text('Accent Color', style: GoogleFonts.poppins(fontSize: 16)),
+                  subtitle: Text('Customize the primary color used across the app', style: GoogleFonts.poppins(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7))),
+                  trailing: CircleAvatar(radius: 14, backgroundColor: helperProvider.primaryColor),
+                  onTap: () async {
+                    final selected = await showDialog<Color>(
+                      context: context,
+                      builder: (context) => _ColorPickerDialog(initial: helperProvider.primaryColor),
+                    );
+                    if (selected != null) {
+                      await helperProvider.setPrimaryColor(selected);
+                      showToast(context, 'Accent color updated', type: ToastType.success);
+                    }
+                  },
+                ),
+              ),
+            ),
+
+            _animatedSetting(
+              delay: 100,
+              child: _settingCard(
+                context: context,
                 child: SwitchListTile(
                   secondary: _leadingIcon(context, Icons.grid_view, color: Theme.of(context).colorScheme.primary),
                   title: Text(AppLocalizations.of(context).gridView,
@@ -516,6 +540,88 @@ class SettingsPage extends StatelessWidget {
       child: Center(
         child: Icon(icon, color: color ?? Theme.of(context).colorScheme.primary, size: 20),
       ),
+    );
+  }
+}
+
+class _ColorPickerDialog extends StatefulWidget {
+  final Color initial;
+  const _ColorPickerDialog({Key? key, required this.initial}) : super(key: key);
+
+  @override
+  State<_ColorPickerDialog> createState() => _ColorPickerDialogState();
+}
+
+class _ColorPickerDialogState extends State<_ColorPickerDialog> {
+  late Color _selected;
+
+  static const List<Color> _presets = [
+    Colors.indigo,
+    Colors.blue,
+    Colors.teal,
+    Colors.green,
+    Colors.amber,
+    Colors.orange,
+    Colors.red,
+    Colors.purple,
+    Colors.pink,
+    Colors.brown,
+    Colors.grey,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initial;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Choose Accent Color'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _presets.map((c) {
+                final selected = c.value == _selected.value;
+                return GestureDetector(
+                  onTap: () => setState(() => _selected = c),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c,
+                      border: selected
+                          ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3)
+                          : null,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.restore_outlined),
+              title: const Text('Reset to default'),
+              onTap: () {
+                setState(() => _selected = Colors.indigo);
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context, Colors.indigo),
+            child: const Text('Reset')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, _selected), child: const Text('Select')),
+      ],
     );
   }
 }

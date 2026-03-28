@@ -21,6 +21,22 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String? _authError;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_clearAuthError);
+    _passwordController.addListener(_clearAuthError);
+  }
+
+  void _clearAuthError() {
+    if (_authError != null) {
+      setState(() {
+        _authError = null;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,20 +139,36 @@ class _LoginPageState extends State<LoginPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter password';
                       }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                      if (_authError != null) {
+                        return _authError;
                       }
                       return null;
                     },
-                    prefixIcon: Icon(Icons.lock, color: AppColors.primary),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
+
+                        prefixIcon: Icon(Icons.lock, color: AppColors.primary),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.13),
+                              width: 1.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2.0,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        ),
                   ),
                 ),
                 itemGap(),
@@ -177,8 +209,24 @@ class _LoginPageState extends State<LoginPage> {
                       );
 
                       try {
-                        await AuthService.signIn(email, password);
+                        final res = await AuthService.signIn(email, password);
                         Navigator.pop(context);
+
+                        if (AuthService.currentUser() == null) {
+                          setState(() {
+                            _authError = 'Login failed';
+                          });
+                          _formKey.currentState!.validate();
+                          return;
+                        }
+                        if (res.session == null) {
+                          setState(() {
+                            _authError = 'Password is incorrect';
+                          });
+                          _formKey.currentState!.validate();
+                          return;
+                        }
+
                         final user = AuthService.currentUser();
                         if (user != null) {
                           final meta = user.userMetadata;
@@ -200,13 +248,17 @@ class _LoginPageState extends State<LoginPage> {
                             withHaptic: true,
                           );
                         } else {
-                          showToast(context, 'Login failed');
+                          setState(() {
+                            _authError = 'Login failed';
+                          });
+                          _formKey.currentState!.validate();
                         }
                       } catch (e) {
                         Navigator.pop(context);
                         showToast(context, 'Login error: $e');
                       }
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -258,6 +310,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    _emailController.removeListener(_clearAuthError);
+    _passwordController.removeListener(_clearAuthError);
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();

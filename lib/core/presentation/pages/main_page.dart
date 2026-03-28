@@ -15,8 +15,8 @@ class NoteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final helperProvider = Provider.of<HelperProvider>(context);
     return MaterialApp(
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.lightThemeFor(helperProvider.primaryColor),
+      darkTheme: AppTheme.darkThemeFor(helperProvider.primaryColor),
       themeMode: helperProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: const MainPage(),
     );

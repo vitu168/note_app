@@ -43,8 +43,8 @@ class NoteApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.lightThemeFor(helperProvider.primaryColor),
+      darkTheme: AppTheme.darkThemeFor(helperProvider.primaryColor),
       themeMode: helperProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       locale: helperProvider.locale,
       supportedLocales: const [

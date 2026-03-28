@@ -16,7 +16,7 @@ class EmptyData extends StatelessWidget {
         children: [
           Icon(
             Icons.inbox,
-            size: AppDimensions.iconLarge * 2,
+            size: AppDimensions.iconLarge * 1,
             color: AppColors.primary.withValues(alpha: 0.5),
           ),
           itemGap(height: 16),

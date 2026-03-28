@@ -18,11 +18,7 @@ class NoteRepository {
   int _nextId = 100;
 
   void _seed() {
-    final now = DateTime.now();
     _notes.addAll([
-      NoteInfo(id: 1, name: 'Welcome to Notes!', description: 'This is your first note.', createdAt: now, updatedAt: now, userId: 'user1'),
-      NoteInfo(id: 2, name: 'Project Meeting', description: 'Discuss milestones.', createdAt: now.subtract(const Duration(days: 1)), updatedAt: now.subtract(const Duration(days: 1)), userId: 'user1'),
-      NoteInfo(id: 3, name: 'Grocery List', description: 'Milk, eggs, bread.', createdAt: now.subtract(const Duration(hours: 5)), updatedAt: now.subtract(const Duration(hours: 5)), userId: 'user1'),
     ]);
     _nextId = 4;
   }

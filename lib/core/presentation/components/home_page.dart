@@ -382,7 +382,6 @@ class _HomePageState extends State<HomePage> {
     final meta = user?.userMetadata;
     setState(() {
       _userEmail = user?.email;
-      // prefer explicit metadata name, otherwise derive from email
       _userName = meta != null
           ? (meta['name'] ?? meta['full_name'] ?? meta['preferred_username'] ?? meta['display_name'])?.toString()
           : null;
@@ -412,7 +411,7 @@ class _HomePageState extends State<HomePage> {
                     color: Theme.of(context).colorScheme.primary,
                     size: 28,
                   ),
-                  const SizedBox(width: 12),
+                  itemGap(width: 12),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).notifications,
