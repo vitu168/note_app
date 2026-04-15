@@ -29,7 +29,6 @@ class AppBottomNavigation extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: Row(
           children: [
-            // Dark pill with 4 nav items
             Expanded(
               child: Container(
                 height: 68,
@@ -56,8 +55,8 @@ class AppBottomNavigation extends StatelessWidget {
                       onTap: () => onTap(0),
                     ),
                     _NavItem(
-                      icon: Icons.people_outline_rounded,
-                      activeIcon: Icons.people_rounded,
+                      icon: Icons.star_outline_rounded,
+                      activeIcon: Icons.star_rounded,
                       label: strings.favorites,
                       selected: currentIndex == 1,
                       accent: accent,
@@ -65,17 +64,17 @@ class AppBottomNavigation extends StatelessWidget {
                       onTap: () => onTap(1),
                     ),
                     _NavItem(
-                      icon: Icons.calendar_month_outlined,
-                      activeIcon: Icons.calendar_month_rounded,
-                      label: strings.archive,
+                      icon: Icons.person_outline_rounded,
+                      activeIcon: Icons.person_rounded,
+                      label: strings.profile,
                       selected: currentIndex == 2,
                       accent: accent,
                       inactiveColor: _kIconInactive,
                       onTap: () => onTap(2),
                     ),
                     _NavItem(
-                      icon: Icons.chat_bubble_outline_rounded,
-                      activeIcon: Icons.chat_bubble_rounded,
+                      icon: Icons.settings_outlined,
+                      activeIcon: Icons.settings_rounded,
                       label: strings.settings,
                       selected: currentIndex == 3,
                       accent: accent,
@@ -87,7 +86,6 @@ class AppBottomNavigation extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // FAB circle – integrated into nav row
             GestureDetector(
               onTap: onFabTapped,
               child: Container(

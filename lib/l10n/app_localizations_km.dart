@@ -99,6 +99,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get addNote => 'បន្ថែមកំណត់ចំណាំ';
 
   @override
+  String get editNote => 'កែសម្រួលកំណត់ចំណាំ';
+
+  @override
   String get title => 'ចំណងជើង';
 
   @override

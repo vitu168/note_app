@@ -30,6 +30,7 @@
   "logoutConfirm": "Are you sure you want to logout?",
   "continueWithGuest": "Continue with Guest",
   "addNote": "Add Note",
+  "editNote": "Edit Note",
   "title": "Title",
   "titleHint": "Enter note title",
   "titleRequired": "Title is required",

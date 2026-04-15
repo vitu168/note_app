@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/components/item_gap.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
-import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
-import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/presentation/components/empty_data.dart';
-import 'dart:async';
-import 'package:note_app/core/data/supabase/auth_service.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
+import 'package:note_app/core/presentation/pages/note_view_page/note_view_page.dart';
+import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:note_app/core/presentation/utils/user_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,448 +20,244 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  String? _userName;
-  String? _userEmail;
-  StreamSubscription? _authSub;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<HomePageProvider>();
-      provider.loadNotes();
+      context.read<HomePageProvider>().loadNotes();
     });
-
-    // load current user info and listen for auth changes
-    _loadUser();
-    _authSub = AuthService.onAuthStateChange().listen((_) => _loadUser());
   }
 
   @override
   void dispose() {
-    _authSub?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openNote(NoteInfo note) async {
+    final refreshed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => NoteViewPage(note: note)),
+    );
+    if (refreshed == true && context.mounted) {
+      context.read<HomePageProvider>().loadNotes();
+    }
+  }
+
+  Future<void> _openAddNote() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddNotePage()),
+    );
+    if (created == true && context.mounted) {
+      context.read<HomePageProvider>().loadNotes();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomePageProvider>();
+    final l10n = AppLocalizations.of(context);
     final filteredNotes = provider.filteredNotes;
+    final theme = Theme.of(context);
+    final profile = context.watch<UserProfileProvider>().profile;
+    final userName = profile?.name ?? profile?.email ?? l10n.profileName;
+    final userEmail = profile?.email ?? l10n.profileEmail;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildProfileHeader(context),
-                itemGap(height: 24),
-                _buildSearchBar(context, provider),
-                itemGap(height: 24),
-                _buildNoteTypeGrid(context),
-                itemGap(height: 32),
-                Text(
-                  'Recent Notes',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A1A1A),
-                  ),
-                ),
-                itemGap(height: 16),
-                if (filteredNotes.isEmpty)
-                  EmptyData(
-                      message: AppLocalizations.of(context).noNotes)
-                else
-                  _buildRecentNotesList(filteredNotes),
-              ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ─────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: _buildHeader(context, theme, l10n, userName, userEmail),
             ),
-          ),
+
+            itemGap(height: 16),
+
+            // ── Search bar ─────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildSearchBar(context, provider, l10n, theme),
+            ),
+
+            itemGap(height: 20),
+
+            // ── Section title + count ──────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Text(
+                    l10n.notes,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${filteredNotes.length}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Add note text button (secondary CTA)
+                  TextButton.icon(
+                    onPressed: _openAddNote,
+                    icon: Icon(
+                      Icons.add_rounded,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    label: Text(
+                      l10n.addNote,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            itemGap(height: 8),
+
+            // ── Notes list ─────────────────────────────────────
+            Expanded(
+              child: provider.loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : filteredNotes.isEmpty
+                      ? EmptyData(message: l10n.noNotes)
+                      : RefreshIndicator(
+                          onRefresh: provider.refresh,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                            itemCount: filteredNotes.length,
+                            itemBuilder: (context, index) {
+                              final note = filteredNotes[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: NoteCard(
+                                  note: note,
+                                  onTap: () => _openNote(note),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor:
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-            child: Icon(
-              Icons.person,
-              size: 32,
-              color: Theme.of(context).colorScheme.primary,
+  Widget _buildHeader(BuildContext context, ThemeData theme,
+      AppLocalizations l10n, String userName, String userEmail) {
+    final initial = userName.isNotEmpty ? userName[0].toUpperCase() : '?';
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 24,
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+          child: Text(
+            initial,
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _userName ?? AppLocalizations.of(context).profileName,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1A1A),
-                  ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                userName,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _userEmail ?? AppLocalizations.of(context).profileEmail,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: const Color(0xFF6B7280),
-                  ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                userEmail,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                 ),
-              ],
-            ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-            ),
-            onPressed: () {
-              _showNotificationsDialog(context);
-            },
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, HomePageProvider provider) {
+  Widget _buildSearchBar(BuildContext context, HomePageProvider provider,
+      AppLocalizations l10n, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: TextField(
         controller: _searchController,
-        onChanged: (value) => provider.setSearch(value),
-        style: GoogleFonts.poppins(fontSize: 15),
+        onChanged: provider.setSearch,
+        style: GoogleFonts.poppins(fontSize: 14),
         decoration: InputDecoration(
-          hintText: AppLocalizations.of(context).searchHint,
+          hintText: l10n.searchHint,
           hintStyle: GoogleFonts.poppins(
-            color: const Color(0xFF9CA3AF),
-            fontSize: 15,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            fontSize: 14,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search_rounded,
-            color: Color(0xFF6B7280),
-            size: 22,
-          ),
-          suffixIcon: IconButton(
-            icon: const Icon(
-              Icons.mic_none_rounded,
-              color: Color(0xFF6B7280),
-              size: 22,
-            ),
-            onPressed: () {
-              showToast(context, 'Voice search feature coming soon!');
-            },
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            size: 20,
           ),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoteTypeGrid(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.1,
-      children: [
-        _buildNoteTypeCard(
-          context,
-          title: 'Text Note',
-          subtitle: 'Write and save your thoughts',
-          icon: Icons.text_fields_rounded,
-          color: const Color(0xFFEEF2FF),
-          iconColor: const Color(0xFF6366F1),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AddNotePage()),
-            );
-          },
-        ),
-        _buildNoteTypeCard(
-          context,
-          title: 'Voice Note',
-          subtitle: 'Record and save your voice',
-          icon: Icons.mic_rounded,
-          color: const Color(0xFF60A5FA),
-          iconColor: Colors.white,
-          isGradient: true,
-          onTap: () {
-            // Navigate to voice note
-            showToast(context, 'Voice note feature coming soon!');
-          },
-        ),
-        _buildNoteTypeCard(
-          context,
-          title: 'Image Note',
-          subtitle: 'Capture notes from images',
-          icon: Icons.image_outlined,
-          color: const Color(0xFFFEF3C7),
-          iconColor: const Color(0xFFF59E0B),
-          onTap: () {
-            showToast(context, 'Image note feature coming soon!');
-          },
-        ),
-        _buildNoteTypeCard(
-          context,
-          title: 'AI Note',
-          subtitle: 'Create notes with AI assistance',
-          icon: Icons.auto_awesome_rounded,
-          color: const Color(0xFFEDE9FE),
-          iconColor: const Color(0xFF8B5CF6),
-          onTap: () {
-            showToast(context, 'AI note feature coming soon!');
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNoteTypeCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required Color iconColor,
-    bool isGradient = false,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isGradient ? null : color,
-          gradient: isGradient
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF60A5FA),
-                    Color(0xFF3B82F6),
-                  ],
-                )
-              : null,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isGradient
-                    ? Colors.white.withValues(alpha: 0.2)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 24,
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isGradient ? Colors.white : const Color(0xFF1A1A1A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: isGradient
-                        ? Colors.white.withValues(alpha: 0.9)
-                        : const Color(0xFF6B7280),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentNotesList(List filteredNotes) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: filteredNotes.length > 5 ? 5 : filteredNotes.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: GestureDetector(
-            onTap: () {
-              showToast(context, 'View note: ${filteredNotes[index].name}');
-            },
-            child: NoteCard(note: filteredNotes[index]),
-          ),
-        );
-      },
-    );
-  }
-
-  void _loadUser() {
-    final user = AuthService.currentUser();
-    final meta = user?.userMetadata;
-    setState(() {
-      _userEmail = user?.email;
-      // prefer explicit metadata name, otherwise derive from email
-      _userName = meta != null
-          ? (meta['name'] ?? meta['full_name'] ?? meta['preferred_username'] ?? meta['display_name'])?.toString()
-          : null;
-      if ((_userName == null || _userName!.trim().isEmpty) && _userEmail != null) {
-        _userName = extractNameFromEmail(_userEmail);
-      }
-    });
-  }
-
-  void _showNotificationsDialog(BuildContext context) {
-    final List<Map<String, String>> notifications = [];
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          constraints: const BoxConstraints(maxHeight: 420, minWidth: 320),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.notifications_active_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      AppLocalizations.of(context).notifications,
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: const Color(0xFF1A1A1A),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 24),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              if (notifications.isEmpty)
-                EmptyData(message: AppLocalizations.of(context).noNotifications)
-              else
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: notifications.length,
-                    separatorBuilder: (_, __) => const Divider(height: 20),
-                    itemBuilder: (context, i) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.1),
-                        child: Icon(
-                          Icons.note_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      title: Text(
-                        notifications[i]['title'] ?? '',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        notifications[i]['message'] ?? '',
-                        style: GoogleFonts.poppins(fontSize: 13),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         ),
       ),
     );
   }
 }
+

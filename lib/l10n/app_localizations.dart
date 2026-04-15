@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Add Note'**
   String get addNote;
 
+  /// No description provided for @editNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Note'**
+  String get editNote;
+
   /// No description provided for @title.
   ///
   /// In en, this message translates to:

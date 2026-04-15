@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Web (CORS disabled)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-browser-flag",
+        "--disable-web-security"
+      ]
+    },
+    {
+      "name": "Flutter (Mobile/Default)",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}

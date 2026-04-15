@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   late final Dio _dio;
@@ -7,18 +8,19 @@ class ApiService {
     return _instance;
   }
 
+  static const String _backendBase =
+      'https://note-app-backend-1-6y7y.onrender.com';
+
   ApiService._internal() {
     _dio = Dio(BaseOptions(
-      baseUrl: 'https://jsonplaceholder.typicode.com',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      baseUrl: _backendBase,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
     ));
-
-    // Add interceptors for logging and error handling
     _dio.interceptors.addAll([
       LogInterceptor(
         request: true,
@@ -30,7 +32,6 @@ class ApiService {
       ),
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) {
-          // Handle common errors
           switch (error.type) {
             case DioExceptionType.connectionTimeout:
             case DioExceptionType.sendTimeout:

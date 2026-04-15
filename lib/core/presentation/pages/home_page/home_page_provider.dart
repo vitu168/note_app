@@ -17,18 +17,20 @@ class HomePageProvider extends ChangeNotifier {
   String get search => _search;
   String get sortOption => _sortOption;
 
-  Future<void> loadNotes() async {
+  Future<void> loadNotes({String? search}) async {
     _loading = true;
     notifyListeners();
     try {
-      _notes = await _repo.getNotes();
+      _notes = await _repo.getNotes(
+        search: search,
+      );
     } finally {
       _loading = false;
       notifyListeners();
     }
   }
 
-  Future<void> refresh() async => loadNotes();
+  Future<void> refresh() async => loadNotes(search: _search.trim().isEmpty ? null : _search.trim());
 
   void setGridView(bool v) {
     if (_isGrid == v) return;
@@ -55,16 +57,11 @@ class HomePageProvider extends ChangeNotifier {
 
   void setSearch(String q) {
     _search = q;
-    notifyListeners();
+    loadNotes(search: q.trim().isEmpty ? null : q.trim());
   }
 
   List<NoteInfo> get filteredNotes {
-    final q = _search.trim().toLowerCase();
-    var list = _notes.where((n) => !_repo.isArchived(n.id)).toList();
-    if (q.isNotEmpty) {
-      list = list.where((n) => (n.name ?? '').toLowerCase().contains(q) || (n.description ?? '').toLowerCase().contains(q)).toList();
-    }
-    return list;
+    return _notes.where((n) => !_repo.isArchived(n.id)).toList();
   }
 
   Future<NoteInfo> addNote(String name, String? description) async {

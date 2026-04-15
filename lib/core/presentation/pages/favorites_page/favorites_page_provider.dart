@@ -14,7 +14,7 @@ class FavoritesPageProvider extends ChangeNotifier {
     _loading = true;
     notifyListeners();
     try {
-      _favorites = await _repo.getFavorites();
+      _favorites = await _repo.getNotes(isFavorites: true);
     } finally {
       _loading = false;
       notifyListeners();

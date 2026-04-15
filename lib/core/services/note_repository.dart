@@ -1,88 +1,116 @@
-import 'dart:async';
-
 import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/services/note_api_service.dart';
 
-/// A simple in-memory notes repository used by providers.
-/// Replace with remote DB (Supabase, SQLite, etc.) when available.
+/// Notes repository backed by the remote REST API.
+/// Archive state is kept local (in-memory) since the backend has no archive concept.
 class NoteRepository {
-  NoteRepository._internal() {
-    _seed();
-  }
-
+  NoteRepository._internal();
   static final NoteRepository _instance = NoteRepository._internal();
   factory NoteRepository() => _instance;
 
-  final List<NoteInfo> _notes = [];
-  final Set<int> _favorites = {};
+  final NoteApiService _api = NoteApiService();
   final Set<int> _archived = {};
-  int _nextId = 100;
+  List<NoteInfo> _cache = [];
 
-  void _seed() {
-    _notes.addAll([
-    ]);
-    _nextId = 4;
-  }
+  static const int _userId = 5;
 
-  Future<List<NoteInfo>> getNotes({bool includeArchived = false}) async {
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (includeArchived) return List.unmodifiable(_notes);
-    return List.unmodifiable(_notes.where((n) => !_archived.contains(n.id)));
+  Future<List<NoteInfo>> getNotes({
+    bool includeArchived = false,
+    String? search,
+    bool? isFavorites,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final all = await _api.getNotes(
+      userId: _userId,
+      search: search,
+      isFavorites: isFavorites,
+      page: page,
+      pageSize: pageSize,
+    );
+    _cache = List.of(all);
+    if (includeArchived) return List.unmodifiable(_cache);
+    return List.unmodifiable(
+        _cache.where((n) => !_archived.contains(n.id)));
   }
 
   Future<List<NoteInfo>> getFavorites() async {
-    await Future.delayed(const Duration(milliseconds: 80));
-    final favs = _notes.where((n) => _favorites.contains(n.id) && !_archived.contains(n.id)).toList();
-    return List.unmodifiable(favs);
+    return getNotes(isFavorites: true);
   }
 
   Future<List<NoteInfo>> getArchived() async {
-    await Future.delayed(const Duration(milliseconds: 80));
-    final archived = _notes.where((n) => _archived.contains(n.id)).toList();
-    return List.unmodifiable(archived);
+    return List.unmodifiable(
+        _cache.where((n) => _archived.contains(n.id)));
   }
 
-  Future<NoteInfo> addNote({required String name, String? description, String? userId}) async {
-    await Future.delayed(const Duration(milliseconds: 120));
-    final note = NoteInfo(id: _nextId++, name: name, description: description, createdAt: DateTime.now(), updatedAt: DateTime.now(), userId: userId);
-    _notes.insert(0, note);
+  Future<NoteInfo> addNote({
+    required String name,
+    String? description,
+    int? userId,
+    bool isFavorites = false,
+  }) async {
+    final uid = userId ?? _userId;
+    final note = await _api.createNote(
+      name: name,
+      description: description,
+      userId: uid,
+      isFavorites: isFavorites,
+    );
+    _cache.insert(0, note);
     return note;
   }
 
   Future<NoteInfo> updateNote(NoteInfo note) async {
-    await Future.delayed(const Duration(milliseconds: 120));
-    final index = _notes.indexWhere((n) => n.id == note.id);
-    if (index == -1) throw Exception('Note not found');
-    final updated = NoteInfo(
+    await _api.updateNote(
       id: note.id,
       name: note.name,
       description: note.description,
+      userId: int.tryParse(note.userId ?? '') ?? _userId,
+      isFavorites: note.isFavorites,
       createdAt: note.createdAt,
-      updatedAt: DateTime.now(),
-      userId: note.userId,
     );
-    _notes[index] = updated;
+    final updated = note.copyWith(updatedAt: DateTime.now());
+    final idx = _cache.indexWhere((n) => n.id == note.id);
+    if (idx != -1) _cache[idx] = updated;
     return updated;
   }
 
   Future<void> deleteNote(int id) async {
-    await Future.delayed(const Duration(milliseconds: 100));
-    _notes.removeWhere((n) => n.id == id);
-    _favorites.remove(id);
+    await _api.deleteNote(id);
+    _cache.removeWhere((n) => n.id == id);
     _archived.remove(id);
   }
 
   Future<void> toggleFavorite(int id) async {
-    await Future.delayed(const Duration(milliseconds: 60));
-    if (_favorites.contains(id)) _favorites.remove(id);
-    else _favorites.add(id);
+    final idx = _cache.indexWhere((n) => n.id == id);
+    if (idx == -1) return;
+    final note = _cache[idx];
+    final flipped = note.copyWith(isFavorites: !note.isFavorites);
+    await _api.updateNote(
+      id: id,
+      name: note.name,
+      description: note.description,
+      userId: int.tryParse(note.userId ?? '') ?? _userId,
+      isFavorites: flipped.isFavorites,
+      createdAt: note.createdAt,
+    );
+    _cache[idx] = flipped;
   }
 
   Future<void> toggleArchive(int id) async {
-    await Future.delayed(const Duration(milliseconds: 60));
-    if (_archived.contains(id)) _archived.remove(id);
-    else _archived.add(id);
+    if (_archived.contains(id)) {
+      _archived.remove(id);
+    } else {
+      _archived.add(id);
+    }
   }
 
-  bool isFavorite(int id) => _favorites.contains(id);
+  bool isFavorite(int id) {
+    final note = _cache.firstWhere((n) => n.id == id,
+        orElse: () => const NoteInfo(id: -1));
+    return note.isFavorites;
+  }
+
   bool isArchived(int id) => _archived.contains(id);
 }
+

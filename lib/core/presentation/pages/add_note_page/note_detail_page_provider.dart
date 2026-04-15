@@ -8,11 +8,19 @@ class NoteDetailPageProvider extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
-  Future<NoteInfo> createNote({required String name, String? description}) async {
+  Future<NoteInfo> createNote({
+    required String name,
+    String? description,
+    bool isFavorites = false,
+  }) async {
     _loading = true;
     notifyListeners();
     try {
-      final n = await _repo.addNote(name: name, description: description);
+      final n = await _repo.addNote(
+        name: name,
+        description: description,
+        isFavorites: isFavorites,
+      );
       return n;
     } finally {
       _loading = false;

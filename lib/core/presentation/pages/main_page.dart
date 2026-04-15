@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:note_app/core/presentation/pages/archive_page/archive_page.dart';
 import 'package:note_app/core/presentation/pages/favorites_page/favorites_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
+import 'package:note_app/core/presentation/pages/profile_page/profile_page.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:note_app/core/presentation/components/menu_navigation/menu_navigation.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
+import 'package:note_app/core/providers/user_profile_provider.dart';
+import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
 
 class NoteApp extends StatelessWidget {
   const NoteApp({super.key});
@@ -34,10 +36,19 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    // Ensure the backend user profile exists (no-op for guests)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProfileProvider>().syncOnLogin();
+    });
+  }
+
   final List<Widget> _pages = [
     const HomePage(),
     const FavoritesPage(),
-    const ArchivePage(),
+    const ProfilePage(),
     const SettingsPage(),
   ];
 
@@ -47,11 +58,14 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  void _onFabTapped() {
-    Navigator.push(
+  void _onFabTapped() async {
+    final created = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (context) => const AddNotePage()),
     );
+    if (created == true && context.mounted) {
+      context.read<HomePageProvider>().loadNotes();
+    }
   }
 
   @override

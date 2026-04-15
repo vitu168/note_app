@@ -8,6 +8,7 @@ import 'package:note_app/core/presentation/pages/home_page/home_page_provider.da
 import 'package:note_app/core/presentation/pages/favorites_page/favorites_page_provider.dart';
 import 'package:note_app/core/presentation/pages/archive_page/archive_page_provider.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_provider.dart';
+import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'l10n/app_localizations.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => FavoritesPageProvider()),
         ChangeNotifierProvider(create: (_) => ArchivePageProvider()),
         ChangeNotifierProvider(create: (_) => NoteDetailPageProvider()),
+        ChangeNotifierProvider(create: (_) => UserProfileProvider()),
       ],
       child: const NoteApp(),
     ),
@@ -45,7 +47,7 @@ class NoteApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightThemeFor(helperProvider.primaryColor),
       darkTheme: AppTheme.darkThemeFor(helperProvider.primaryColor),
-      themeMode: helperProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: helperProvider.themeMode,
       locale: helperProvider.locale,
       supportedLocales: const [
         Locale('en'),

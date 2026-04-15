@@ -5,14 +5,16 @@ class NoteInfo {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? userId;
+  final bool isFavorites;
 
-  NoteInfo({
+  const NoteInfo({
     required this.id,
     this.name,
     this.description,
     this.createdAt,
     this.updatedAt,
     this.userId,
+    this.isFavorites = false,
   });
 
   factory NoteInfo.fromJson(Map<String, dynamic> json) {
@@ -20,26 +22,43 @@ class NoteInfo {
       id: json['id'] as int,
       name: json['name'] as String?,
       description: json['description'] as String?,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
           : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
           : null,
-      userId: json['user_id'] as String?,
+      userId: json['userId']?.toString(),
+      isFavorites: json['isFavorites'] as bool? ?? false,
     );
   }
 
-  bool get isFavorite => true;
+  NoteInfo copyWith({
+    String? name,
+    String? description,
+    bool? isFavorites,
+    DateTime? updatedAt,
+  }) {
+    return NoteInfo(
+      id: id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      userId: userId,
+      isFavorites: isFavorites ?? this.isFavorites,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'description': description,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'user_id': userId,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'userId': userId,
+      'isFavorites': isFavorites,
     };
   }
 }
