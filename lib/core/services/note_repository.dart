@@ -67,12 +67,10 @@ class NoteRepository {
       description: note.description,
       userId: int.tryParse(note.userId ?? '') ?? _userId,
       isFavorites: note.isFavorites,
-      createdAt: note.createdAt,
     );
-    final updated = note.copyWith(updatedAt: DateTime.now());
     final idx = _cache.indexWhere((n) => n.id == note.id);
-    if (idx != -1) _cache[idx] = updated;
-    return updated;
+    if (idx != -1) _cache[idx] = note;
+    return note;
   }
 
   Future<void> deleteNote(int id) async {
@@ -92,7 +90,6 @@ class NoteRepository {
       description: note.description,
       userId: int.tryParse(note.userId ?? '') ?? _userId,
       isFavorites: flipped.isFavorites,
-      createdAt: note.createdAt,
     );
     _cache[idx] = flipped;
   }

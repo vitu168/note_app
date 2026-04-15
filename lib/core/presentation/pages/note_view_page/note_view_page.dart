@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
+import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
@@ -59,17 +60,22 @@ class _NoteViewPageState extends State<NoteViewPage> {
       ),
     );
 
-    if (confirmed == true && context.mounted) {
-      try {
-        await context.read<HomePageProvider>().deleteNote(_note.id);
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await context.read<HomePageProvider>().deleteNote(_note.id);
+
+      if (context.mounted) {
+        // Refresh list to show updated data
+        await context.read<HomePageProvider>().loadNotes();
+        showToast(context, 'Note deleted successfully', type: ToastType.success);
         if (context.mounted) {
-          showToast(context, 'Note deleted');
           Navigator.pop(context, true);
         }
-      } catch (e) {
-        if (context.mounted) {
-          showToast(context, 'Delete failed: $e');
-        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showToast(context, 'Error deleting note: $e', type: ToastType.error);
       }
     }
   }

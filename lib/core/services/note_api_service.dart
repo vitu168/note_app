@@ -63,15 +63,12 @@ class NoteApiService {
     String? description,
     required int userId,
     bool isFavorites = false,
-    DateTime? createdAt,
   }) async {
     final body = {
       'name': name,
       'description': description,
       'userId': userId.toString(),
       'isFavorites': isFavorites,
-      'updatedAt': DateTime.now().toIso8601String(),
-      if (createdAt != null) 'createdAt': createdAt.toIso8601String(),
     };
     await _api.put('/api/NoteInfo/$id', data: body);
   }
