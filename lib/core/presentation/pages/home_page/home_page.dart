@@ -4,7 +4,6 @@ import 'package:note_app/core/presentation/components/item_gap.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
 import 'package:note_app/core/presentation/components/empty_data.dart';
-import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
 import 'package:note_app/core/presentation/pages/note_view_page/note_view_page.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
@@ -41,16 +40,6 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(builder: (_) => NoteViewPage(note: note)),
     );
     if (refreshed == true && context.mounted) {
-      context.read<HomePageProvider>().loadNotes();
-    }
-  }
-
-  Future<void> _openAddNote() async {
-    final created = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => const AddNotePage()),
-    );
-    if (created == true && context.mounted) {
       context.read<HomePageProvider>().loadNotes();
     }
   }
@@ -118,27 +107,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const Spacer(),
-                  // Add note text button (secondary CTA)
-                  TextButton.icon(
-                    onPressed: _openAddNote,
-                    icon: Icon(
-                      Icons.add_rounded,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
-                    label: Text(
-                      l10n.addNote,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                    ),
-                  ),
                 ],
               ),
             ),
