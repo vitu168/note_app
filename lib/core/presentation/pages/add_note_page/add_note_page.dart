@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/presentation/components/app_page_header.dart';
+import 'package:note_app/core/presentation/components/app_text_field.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_provider.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
+import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:provider/provider.dart';
 
 class AddNotePage extends StatefulWidget {
@@ -20,6 +23,7 @@ class _AddNotePageState extends State<AddNotePage> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   bool _isFavorite = false;
+  TimeOfDay? _reminderTime;
   bool _saving = false;
 
   bool get _isEditing => widget.existingNote != null;
@@ -42,6 +46,16 @@ class _AddNotePageState extends State<AddNotePage> {
     super.dispose();
   }
 
+  Future<void> _selectReminderTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime ?? TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() => _reminderTime = picked);
+    }
+  }
+
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
@@ -49,10 +63,8 @@ class _AddNotePageState extends State<AddNotePage> {
           type: ToastType.error);
       return;
     }
-
     setState(() => _saving = true);
     final provider = context.read<NoteDetailPageProvider>();
-
     try {
       if (_isEditing) {
         await provider.updateNote(
@@ -85,209 +97,311 @@ class _AddNotePageState extends State<AddNotePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = context.appTheme;
     final l10n = AppLocalizations.of(context);
     final profile = context.watch<UserProfileProvider>().profile;
-
     final userName = profile?.name ?? profile?.email ?? l10n.profileName;
-    final userInitial =
-        userName.isNotEmpty ? userName[0].toUpperCase() : '?';
+    final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : '?';
+    final avatarUrl = profile?.avatarUrl ?? '';
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: theme.colorScheme.onSurface, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          _isEditing ? l10n.editNote : l10n.addNote,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface,
+      backgroundColor: t.surfaceElevated,
+      appBar: AppPageHeader(
+        title: _isEditing ? l10n.editNote : l10n.addNote,
+      ),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 48),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: avatarUrl.isNotEmpty
+                          ? Colors.transparent
+                          : t.primary.withValues(alpha: 0.12),
+                    ),
+                    child: ClipOval(
+                      child: avatarUrl.isNotEmpty
+                          ? Image.network(
+                              avatarUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: t.primary.withValues(alpha: 0.12),
+                                child: Center(
+                                  child: Text(
+                                    userInitial,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: t.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              loadingBuilder: (_, child, progress) =>
+                                  progress == null
+                                      ? child
+                                      : Container(
+                                          color: t.primary.withValues(alpha: 0.12),
+                                          child: Center(
+                                            child: SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation(
+                                                        t.primary),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                            )
+                          : Center(
+                              child: Text(
+                                userInitial,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: t.primary,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: t.titleText,
+                        ),
+                      ),
+                      Text(
+                        'Note Author',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: t.hintText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── Title field ──────────────────────────────────────────────────
+              AppTextField(
+                controller: _titleController,
+                hint: l10n.titleHint,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: t.titleText,
+                lineHeight: 1.3,
+                maxLines: null,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.sentences,
+                textInputAction: TextInputAction.next,
+                onEditingComplete: () => FocusScope.of(context).nextFocus(),
+              ),
+
+              const SizedBox(height: 12),
+              Divider(height: 1, color: t.divider.withValues(alpha: 0.4)),
+              const SizedBox(height: 16),
+
+              // ── Content field ────────────────────────────────────────────────
+              AppTextField(
+                controller: _contentController,
+                hint: l10n.contentHint,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: t.bodyText,
+                lineHeight: 1.7,
+                maxLines: null,
+                minLines: 14,
+                keyboardType: TextInputType.multiline,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+
+              const SizedBox(height: 36),
+              Divider(height: 1, color: t.divider.withValues(alpha: 0.4)),
+              const SizedBox(height: 20),
+
+              // ── Options card ─────────────────────────────────────────────────
+              Container(
+                decoration: BoxDecoration(
+                  color: t.surface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    // Favorite toggle
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isFavorite
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            size: 20,
+                            color: _isFavorite ? t.primary : t.hintText,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Mark as Favorite',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: t.titleText,
+                              ),
+                            ),
+                          ),
+                          Switch.adaptive(
+                            value: _isFavorite,
+                            activeColor: t.primary,
+                            onChanged: (v) => setState(() => _isFavorite = v),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: t.divider.withValues(alpha: 0.4),
+                    ),
+                    InkWell(
+                      onTap: _selectReminderTime,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.notifications_outlined,
+                              size: 20,
+                              color: _reminderTime != null
+                                  ? t.primary
+                                  : t.hintText,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Reminder',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: t.titleText,
+                                ),
+                              ),
+                            ),
+                            if (_reminderTime != null) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: t.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  _reminderTime!.format(context),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: t.primary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () =>
+                                    setState(() => _reminderTime = null),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: t.hintText,
+                                ),
+                              ),
+                            ] else
+                              Text(
+                                'Set time',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  color: t.hintText,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        centerTitle: true,
-        actions: [
-          _saving
-              ? const Padding(
-                  padding: EdgeInsets.only(right: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : TextButton(
-                  onPressed: _save,
-                  child: Text(
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: SizedBox(
+          height: 48,
+          child: ElevatedButton(
+            onPressed: _save,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: t.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 0,
+            ),
+            child: _saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
                     l10n.save,
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      color: theme.colorScheme.primary,
+                      color: Colors.white,
                     ),
                   ),
-                ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // ── Author row ──────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor:
-                      theme.colorScheme.primary.withValues(alpha: 0.15),
-                  child: Text(
-                    userInitial,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    userName,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
           ),
-
-          const SizedBox(height: 16),
-          Divider(
-              height: 1,
-              thickness: 1,
-              color: theme.colorScheme.outline.withValues(alpha: 0.12)),
-
-          // ── Scrollable content ──────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  TextField(
-                    controller: _titleController,
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: l10n.titleHint,
-                      hintStyle: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.25),
-                      ),
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                    maxLines: null,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Content
-                  TextField(
-                    controller: _contentController,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      height: 1.7,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.8),
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: l10n.contentHint,
-                      hintStyle: GoogleFonts.poppins(
-                        fontSize: 16,
-                        height: 1.7,
-                        color: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.25),
-                      ),
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                    maxLines: null,
-                    minLines: 8,
-                    keyboardType: TextInputType.multiline,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ── Bottom toolbar ──────────────────────────────────
-          Container(
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              border: Border(
-                top: BorderSide(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.12),
-                ),
-              ),
-            ),
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 12,
-              bottom: MediaQuery.of(context).padding.bottom + 12,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.star_rounded,
-                  size: 20,
-                  color: _isFavorite
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.35),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.markFavorite,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                  ),
-                ),
-                const Spacer(),
-                Switch.adaptive(
-                  value: _isFavorite,
-                  activeColor: theme.colorScheme.primary,
-                  onChanged: (v) => setState(() => _isFavorite = v),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
-

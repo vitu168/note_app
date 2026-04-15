@@ -3,10 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:note_app/core/models/note_info.dart';
+import 'package:note_app/core/presentation/components/app_page_header.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
+import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
 class NoteViewPage extends StatefulWidget {
@@ -33,7 +35,6 @@ class _NoteViewPageState extends State<NoteViewPage> {
       MaterialPageRoute(builder: (_) => AddNotePage(existingNote: _note)),
     );
     if (refreshed == true && context.mounted) {
-      // Refresh list behind us and pop back with true
       context.read<HomePageProvider>().loadNotes();
       if (context.mounted) Navigator.pop(context, true);
     }
@@ -43,87 +44,82 @@ class _NoteViewPageState extends State<NoteViewPage> {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Note'),
-        content: Text('Delete "${_note.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
+      builder: (ctx) {
+        final t = ctx.appTheme;
+        return AlertDialog(
+          backgroundColor: t.surface,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Delete Note',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w700,
+              color: t.titleText,
+            ),
           ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+          content: Text(
+            'Are you sure you want to delete "${_note.name}"? This cannot be undone.',
+            style: GoogleFonts.poppins(fontSize: 14, color: t.bodyText),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                l10n.cancel,
+                style: GoogleFonts.poppins(color: t.hintText),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                'Delete',
+                style: GoogleFonts.poppins(
+                  color: t.danger,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed != true || !context.mounted) return;
 
     try {
       await context.read<HomePageProvider>().deleteNote(_note.id);
-
       if (context.mounted) {
-        // Refresh list to show updated data
         await context.read<HomePageProvider>().loadNotes();
-        showToast(context, 'Note deleted successfully', type: ToastType.success);
-        if (context.mounted) {
-          Navigator.pop(context, true);
-        }
+        showToast(context, 'Note deleted', type: ToastType.success);
+        if (context.mounted) Navigator.pop(context, true);
       }
     } catch (e) {
       if (context.mounted) {
-        showToast(context, 'Error deleting note: $e', type: ToastType.error);
+        showToast(context, 'Error: $e', type: ToastType.error);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final dateFormatter = DateFormat('MMMM d, yyyy · h:mm a');
-    final createdStr = _note.createdAt != null
-        ? dateFormatter.format(_note.createdAt!)
-        : '';
-    final updatedStr = _note.updatedAt != null
-        ? dateFormatter.format(_note.updatedAt!)
-        : '';
+    final t = context.appTheme;
+    final dateFmt = DateFormat('MMM d, yyyy · h:mm a');
+    final createdStr =
+        _note.createdAt != null ? dateFmt.format(_note.createdAt!) : null;
+    final updatedStr =
+        _note.updatedAt != null ? dateFmt.format(_note.updatedAt!) : null;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        iconTheme: IconThemeData(color: theme.colorScheme.primary),
-        title: Text(
-          'Note Detail',
-          style: GoogleFonts.poppins(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit_outlined, color: theme.colorScheme.primary),
-            tooltip: 'Edit',
-            onPressed: _openEdit,
-          ),
-          IconButton(
-            icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error),
-            tooltip: 'Delete',
-            onPressed: _confirmDelete,
-          ),
-        ],
+      backgroundColor: t.surfaceElevated,
+      appBar: AppPageHeader(
+        title: 'Note Detail',
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
+            // ── Title row ───────────────────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -132,73 +128,98 @@ class _NoteViewPageState extends State<NoteViewPage> {
                     _note.name ?? '',
                     style: GoogleFonts.poppins(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w700,
+                      color: t.titleText,
+                      height: 1.3,
                     ),
                   ),
                 ),
-                if (_note.isFavorites)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8, top: 4),
-                    child: Icon(
-                      Icons.star_rounded,
-                      color: theme.colorScheme.primary,
-                      size: 26,
+                if (_note.isFavorites) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: t.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
                     ),
+                    child: Icon(Icons.star_rounded, color: t.primary, size: 18),
                   ),
+                ],
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Metadata row
-            if (createdStr.isNotEmpty)
-              _MetaRow(
-                icon: Icons.calendar_today_outlined,
-                label: 'Created',
-                value: createdStr,
-                theme: theme,
-              ),
-            if (updatedStr.isNotEmpty)
-              _MetaRow(
-                icon: Icons.update_rounded,
-                label: 'Updated',
-                value: updatedStr,
-                theme: theme,
-              ),
 
             const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 20),
 
-            // Content
+            // ── Date metadata ───────────────────────────────────
+            if (createdStr != null)
+              _DateChip(icon: Icons.calendar_today_outlined, label: createdStr),
+            if (updatedStr != null && updatedStr != createdStr) ...[
+              const SizedBox(height: 4),
+              _DateChip(icon: Icons.update_rounded, label: 'Edited $updatedStr'),
+            ],
+
+            const SizedBox(height: 24),
+            Divider(height: 1, color: t.divider.withValues(alpha: 0.5)),
+            const SizedBox(height: 24),
+
+            // ── Content ─────────────────────────────────────────
             Text(
               _note.description ?? '',
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: 15,
                 height: 1.7,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                color: t.bodyText,
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // Note info chip row
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _InfoChip(
-                  icon: Icons.tag_rounded,
-                  label: 'ID: ${_note.id}',
-                  theme: theme,
-                ),
-                if (_note.isFavorites)
-                  _InfoChip(
-                    icon: Icons.star_rounded,
-                    label: 'Favorite',
-                    theme: theme,
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _openEdit,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: t.primary.withValues(alpha: 0.15)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
-              ],
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(
+                  'Edit',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: t.primary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _confirmDelete,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: t.danger,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(
+                  'Delete',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -207,80 +228,28 @@ class _NoteViewPageState extends State<NoteViewPage> {
   }
 }
 
-class _MetaRow extends StatelessWidget {
+class _DateChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String value;
-  final ThemeData theme;
 
-  const _MetaRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.theme,
-  });
+  const _DateChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 15, color: theme.colorScheme.primary.withValues(alpha: 0.7)),
-          const SizedBox(width: 6),
-          Text(
-            '$label: ',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
+    final t = context.appTheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: t.hintText),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            color: t.hintText,
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final ThemeData theme;
-
-  const _InfoChip({required this.icon, required this.label, required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: theme.colorScheme.primary),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

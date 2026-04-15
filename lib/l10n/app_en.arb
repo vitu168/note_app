@@ -74,5 +74,8 @@
   "notificationNoteSavedBody": "Your note was saved successfully.",
   "profileName": "John Doe",
   "profileEmail": "john.doe@example.com",
-  "language": "language"
+  "language": "language",
+  "chatTitle": "People",
+  "chatSearchHint": "Search users...",
+  "chatNoUsers": "No users found"
 }

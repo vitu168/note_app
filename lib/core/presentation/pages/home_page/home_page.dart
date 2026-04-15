@@ -47,17 +47,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _greeting() {
-    final hour = DateTime.now().hour;
+    final hour = DateTime.now().toLocal().hour;
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 22) return 'Good evening';
+    return 'Good night';
   }
 
-  IconData _greetingIcon() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return Icons.wb_sunny_rounded;
-    if (hour < 17) return Icons.wb_cloudy_rounded;
-    return Icons.nightlight_round;
+  String _greetingSticker() {
+    final hour = DateTime.now().toLocal().hour;
+    if (hour < 12) return '🌞';
+    if (hour < 17) return '🌤️';
+    if (hour < 22) return '🌜';
+    return '🌙';
+  }
+
+  Widget _avatarFallback(String initial, AppThemeExtension t) {
+    return Container(
+      color: t.primaryMuted,
+      child: Center(
+        child: Text(
+          initial,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: t.primary,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -89,9 +107,9 @@ class _HomePageState extends State<HomePage> {
               child: _buildSearchBar(context, provider, l10n, t),
             ),
 
-            itemGap(height: 24),
+            itemGap(height: 16),
 
-            // ── Section title + count ──────────────────────────
+            // ── Controls row: count + favorites filter + view toggle ────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -106,8 +124,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: t.primaryMuted,
                       borderRadius: BorderRadius.circular(12),
@@ -121,13 +138,67 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+                  const Spacer(),
+                  // ── Favorites filter toggle ──────────────────
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: t.surfaceElevated,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _SegmentBtn(
+                          icon: Icons.notes_rounded,
+                          selected: !provider.favoritesOnly,
+                          accent: t.primary,
+                          onTap: () => provider.setFavoritesOnly(false),
+                        ),
+                        const SizedBox(width: 2),
+                        _SegmentBtn(
+                          icon: Icons.star_rounded,
+                          selected: provider.favoritesOnly,
+                          accent: t.primary,
+                          onTap: () => provider.setFavoritesOnly(true),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // ── List / Grid view toggle ──────────────────
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: t.surfaceElevated,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _SegmentBtn(
+                          icon: Icons.view_list_rounded,
+                          selected: !provider.isGrid,
+                          accent: t.primary,
+                          onTap: () => provider.setGridView(false),
+                        ),
+                        const SizedBox(width: 2),
+                        _SegmentBtn(
+                          icon: Icons.grid_view_rounded,
+                          selected: provider.isGrid,
+                          accent: t.primary,
+                          onTap: () => provider.setGridView(true),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
 
             itemGap(height: 8),
 
-            // ── Notes list ─────────────────────────────────────
+            // ── Notes list / grid ───────────────────────────────────────────
             Expanded(
               child: provider.loading
                   ? const Center(child: CircularProgressIndicator())
@@ -135,20 +206,38 @@ class _HomePageState extends State<HomePage> {
                       ? EmptyData(message: l10n.noNotes)
                       : RefreshIndicator(
                           onRefresh: provider.refresh,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                            itemCount: filteredNotes.length,
-                            itemBuilder: (context, index) {
-                              final note = filteredNotes[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: NoteCard(
-                                  note: note,
-                                  onTap: () => _openNote(note),
+                          child: provider.isGrid
+                              ? GridView.builder(
+                                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 0.85,
+                                  ),
+                                  itemCount: filteredNotes.length,
+                                  itemBuilder: (context, index) {
+                                    final note = filteredNotes[index];
+                                    return NoteCard(
+                                      note: note,
+                                      onTap: () => _openNote(note),
+                                    );
+                                  },
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                                  itemCount: filteredNotes.length,
+                                  itemBuilder: (context, index) {
+                                    final note = filteredNotes[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: NoteCard(
+                                        note: note,
+                                        onTap: () => _openNote(note),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
                         ),
             ),
           ],
@@ -163,26 +252,29 @@ class _HomePageState extends State<HomePage> {
     AppLocalizations l10n,
     String userName,
   ) {
+    final profile = context.watch<UserProfileProvider>().profile;
     final initial = userName.isNotEmpty ? userName[0].toUpperCase() : '?';
+    final avatarUrl = profile?.avatarUrl ?? '';
+
     return Row(
       children: [
-        // Avatar with initial
         Container(
-          width: 50,
-          height: 50,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: t.primaryMuted,
           ),
-          child: Center(
-            child: Text(
-              initial,
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: t.primary,
-              ),
-            ),
+          child: ClipOval(
+            child: avatarUrl.isNotEmpty
+                ? Image.network(
+                    avatarUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _avatarFallback(initial, t),
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : _avatarFallback(initial, t),
+                  )
+                : _avatarFallback(initial, t),
           ),
         ),
         const SizedBox(width: 12),
@@ -194,8 +286,6 @@ class _HomePageState extends State<HomePage> {
             children: [
               Row(
                 children: [
-                  Icon(_greetingIcon(), size: 14, color: t.hintText),
-                  const SizedBox(width: 4),
                   Text(
                     _greeting(),
                     style: GoogleFonts.poppins(
@@ -203,9 +293,24 @@ class _HomePageState extends State<HomePage> {
                       color: t.hintText,
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: t.surface,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      _greetingSticker(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 8),
               Text(
                 userName,
                 style: GoogleFonts.poppins(
@@ -295,3 +400,40 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// ── Segmented toggle button (matches settings page style) ─────────────────────
+
+class _SegmentBtn extends StatelessWidget {
+  const _SegmentBtn({
+    required this.icon,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: selected ? accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: selected ? Colors.white : context.appTheme.hintText,
+        ),
+      ),
+    );
+  }
+}

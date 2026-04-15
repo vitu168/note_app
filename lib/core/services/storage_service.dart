@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Handles file uploads to Supabase Storage.
@@ -18,21 +19,33 @@ class StorageService {
     required File imageFile,
     required String userId,
   }) async {
-    final ext = imageFile.path.split('.').last.toLowerCase();
-    final fileName = 'avatar_${userId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    try {
+      final ext = imageFile.path.split('.').last.toLowerCase();
+      final fileName =
+          'avatar_${userId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
 
-    final bytes = await imageFile.readAsBytes();
+      final bytes = await imageFile.readAsBytes();
 
-    await _storage.from(_kAvatarBucket).uploadBinary(
-          fileName,
-          bytes,
-          fileOptions: FileOptions(
-            contentType: _contentType(ext),
-            upsert: true,
-          ),
-        );
+      await _storage.from(_kAvatarBucket).uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: FileOptions(
+              contentType: _contentType(ext),
+              upsert: true,
+            ),
+          );
 
-    return _storage.from(_kAvatarBucket).getPublicUrl(fileName);
+      final publicUrl =
+          _storage.from(_kAvatarBucket).getPublicUrl(fileName);
+      debugPrint('[StorageService] Uploaded avatar: $publicUrl');
+      return publicUrl;
+    } on StorageException catch (e) {
+      debugPrint('[StorageService] StorageException: ${e.message} | ${e.error}');
+      throw Exception(e.message.isNotEmpty ? e.message : (e.error ?? 'Storage upload failed'));
+    } catch (e) {
+      debugPrint('[StorageService] Unexpected error: $e');
+      rethrow;
+    }
   }
 
   String _contentType(String ext) {

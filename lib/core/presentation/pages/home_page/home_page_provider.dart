@@ -10,12 +10,14 @@ class HomePageProvider extends ChangeNotifier {
   bool _isGrid = true;
   String _search = '';
   String _sortOption = 'date';
+  bool _favoritesOnly = false;
 
   List<NoteInfo> get notes => _notes;
   bool get loading => _loading;
   bool get isGrid => _isGrid;
   String get search => _search;
   String get sortOption => _sortOption;
+  bool get favoritesOnly => _favoritesOnly;
 
   Future<void> loadNotes({String? search}) async {
     _loading = true;
@@ -35,6 +37,12 @@ class HomePageProvider extends ChangeNotifier {
   void setGridView(bool v) {
     if (_isGrid == v) return;
     _isGrid = v;
+    notifyListeners();
+  }
+
+  void setFavoritesOnly(bool v) {
+    if (_favoritesOnly == v) return;
+    _favoritesOnly = v;
     notifyListeners();
   }
 
@@ -61,7 +69,11 @@ class HomePageProvider extends ChangeNotifier {
   }
 
   List<NoteInfo> get filteredNotes {
-    return _notes.where((n) => !_repo.isArchived(n.id)).toList();
+    return _notes.where((n) {
+      if (_repo.isArchived(n.id)) return false;
+      if (_favoritesOnly && !n.isFavorites) return false;
+      return true;
+    }).toList();
   }
 
   Future<NoteInfo> addNote(String name, String? description) async {

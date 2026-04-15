@@ -233,4 +233,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'language';
+
+  @override
+  String get chatTitle => 'People';
+
+  @override
+  String get chatSearchHint => 'Search users...';
+
+  @override
+  String get chatNoUsers => 'No users found';
 }

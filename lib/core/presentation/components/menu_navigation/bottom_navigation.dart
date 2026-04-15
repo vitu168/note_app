@@ -58,9 +58,9 @@ class AppBottomNavigation extends StatelessWidget {
                       onTap: () => onTap(0),
                     ),
                     _NavItem(
-                      icon: Icons.archive_outlined,
-                      activeIcon: Icons.archive,
-                      label: strings.favorites,
+                      icon: Icons.people_outline_rounded,
+                      activeIcon: Icons.people_rounded,
+                      label: strings.chatTitle,
                       selected: currentIndex == 1,
                       accent: accent,
                       inactiveColor: inactiveColor,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/core/presentation/auth/welcome_page.dart';
+import 'package:note_app/core/presentation/auth/splash_page.dart';
 import 'package:provider/provider.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
-import 'package:note_app/core/presentation/pages/favorites_page/favorites_page_provider.dart';
+import 'package:note_app/core/presentation/pages/chat_page/chat_page_provider.dart';
 import 'package:note_app/core/presentation/pages/archive_page/archive_page_provider.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_provider.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
@@ -26,7 +26,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => HelperProvider()),
         ChangeNotifierProvider(create: (_) => HomePageProvider()),
-        ChangeNotifierProvider(create: (_) => FavoritesPageProvider()),
+        ChangeNotifierProvider(create: (_) => ChatPageProvider()),
         ChangeNotifierProvider(create: (_) => ArchivePageProvider()),
         ChangeNotifierProvider(create: (_) => NoteDetailPageProvider()),
         ChangeNotifierProvider(create: (_) => UserProfileProvider()),
@@ -59,7 +59,7 @@ class NoteApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: WelcomePage(),
+      home: const SplashPage(),
     );
   }
 }

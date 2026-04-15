@@ -547,6 +547,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'language'**
   String get language;
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get chatTitle;
+
+  /// No description provided for @chatSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search users...'**
+  String get chatSearchHint;
+
+  /// No description provided for @chatNoUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get chatNoUsers;
 }
 
 class _AppLocalizationsDelegate

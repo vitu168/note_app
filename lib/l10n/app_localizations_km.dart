@@ -235,4 +235,13 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get language => 'ភាសា';
+
+  @override
+  String get chatTitle => 'អ្នក​ប្រើ';
+
+  @override
+  String get chatSearchHint => 'ស្វែងរក​អ្នក​ប្រើ...';
+
+  @override
+  String get chatNoUsers => 'រក​មិន​ឃើញ​អ្នក​ប្រើ';
 }

@@ -83,19 +83,13 @@ class _SettingsPageState extends State<SettingsPage>
             children: [
               // ── User Profile Card ─────────────────────────────
               _UserProfileCard(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
 
               // ── Appearance ────────────────────────────────────
               _SectionLabel(label: 'Appearance'),
               const SizedBox(height: 12),
               _AppearanceCard(helper: helper),
-              const SizedBox(height: 32),
-
-              // ── Language ──────────────────────────────────────
-              _SectionLabel(label: strings.appLanguage),
               const SizedBox(height: 12),
-              _LanguageCard(helper: helper),
-              const SizedBox(height: 32),
 
               // ── Logout ────────────────────────────────────────
               _SectionLabel(label: 'Account'),
@@ -205,199 +199,117 @@ class _UserProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = AuthService.currentUser();
     final profile = context.watch<UserProfileProvider>().profile;
+    final helper = context.watch<HelperProvider>();
     final t = context.appTheme;
 
     final name = profile?.name ?? user?.email ?? 'User';
     final email = user?.email ?? '';
     final avatarUrl = profile?.avatarUrl;
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final accent = helper.primaryColor;
 
     return Column(
       children: [
-            // Top gradient area with edit button
-        Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: GestureDetector(
-              onTap: () => _showEditProfileSheet(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: t.surface.withValues(alpha: 0.85),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.10),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.edit_rounded,
-                  size: 17,
-                  color: t.primary,
+        const SizedBox(height: 38),
+        const SizedBox(height: 20),
+        // Larger avatar with stacked active badge and clean edit overlay
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 130,
+              height: 130,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: accent, width: 2.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: avatarUrl != null && avatarUrl.isNotEmpty
+                    ? Image.network(
+                        avatarUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _avatarFallback(t, initial),
+                      )
+                    : _avatarFallback(t, initial),
+              ),
+            ),
+            Positioned(
+              bottom: -6,
+              right: -6,
+              child: GestureDetector(
+                onTap: () => _showEditProfileSheet(context),
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: t.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: t.divider.withValues(alpha: 0.5), width: 1),
+                  ),
+                  child: Icon(
+                    Icons.edit_rounded,
+                    size: 18,
+                    color: accent,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
-        
-        // Avatar - Large profile image (overlapping)
-        Transform.translate(
-          offset: const Offset(0, -50),
-          child: Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: t.surface,
-                width: 5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: t.primary.withValues(alpha: 0.25),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: avatarUrl != null && avatarUrl.isNotEmpty
-                  ? Image.network(
-                      avatarUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: t.primaryMuted,
-                          child: Center(
-                            child: Text(
-                              initial,
-                              style: GoogleFonts.poppins(
-                                fontSize: 40,
-                                fontWeight: FontWeight.w700,
-                                color: t.primary,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: t.primaryMuted,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              valueColor: AlwaysStoppedAnimation(t.primary),
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      color: t.primaryMuted,
-                      child: Center(
-                        child: Text(
-                          initial,
-                          style: GoogleFonts.poppins(
-                            fontSize: 40,
-                            fontWeight: FontWeight.w700,
-                            color: t.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
+        const SizedBox(height: 20),
+        // Name
+        Text(
+          name,
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: t.titleText,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
-        
-        // User info
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Name
-              Text(
-                name,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: t.titleText,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              // Email
-              Text(
-                email,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: t.hintText,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 14),
-              // Divider
-              Container(
-                height: 1,
-                color: t.divider,
-              ),
-              const SizedBox(height: 14),
-              // Profile status badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: t.primaryMuted,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: t.success,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Active',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: t.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        const SizedBox(height: 6),
+        // Email
+        Text(
+          email,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: t.hintText,
+            fontWeight: FontWeight.w400,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
       ],
     );
   }
-}
 
-// ─── Edit Profile Bottom Sheet ───────────────────────────────────────────────
+  Widget _avatarFallback(dynamic t, String initial) {
+    return Container(
+      color: t.primaryMuted,
+      child: Center(
+        child: Text(
+          initial,
+          style: GoogleFonts.poppins(
+            fontSize: 48,
+            fontWeight: FontWeight.w700,
+            color: t.primary,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _EditProfileSheet extends StatefulWidget {
   final UserProfile profile;
@@ -460,10 +372,9 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
       if (mounted) setState(() => _pendingAvatarUrl = url);
     } catch (e) {
       if (mounted) {
-        showToast(
-          context,
-          'Upload failed. Make sure the "avatars" storage bucket exists in Supabase.',
-        );
+        // Show the real error so it's easier to diagnose
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        showToast(context, 'Upload failed: $msg');
       }
     } finally {
       if (mounted) setState(() => _uploadingImage = false);
@@ -1029,7 +940,7 @@ class _SettingRow extends StatelessWidget {
   }
 }
 
-// ─── Appearance card (theme chips + color swatches) ───────────────────────────
+// ─── Appearance card (compact: segmented theme toggle + small color dots) ─────
 
 class _AppearanceCard extends StatelessWidget {
   final HelperProvider helper;
@@ -1052,140 +963,249 @@ class _AppearanceCard extends StatelessWidget {
                 ),
               ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header row ──────────────────────────────────
-            Row(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            child: Row(
               children: [
                 Container(
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: helper.primaryColor,
+                    color: helper.primaryColor.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.palette_rounded,
-                      size: 19, color: Colors.white),
+                  child: Icon(Icons.brightness_6_rounded,
+                      size: 19, color: helper.primaryColor),
                 ),
                 const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Text(
+                  'Theme',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    color: t.titleText,
+                  ),
+                ),
+                const Spacer(),
+                // Compact segmented toggle
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: t.surfaceElevated,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Appearance',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w500,
-                          color: t.titleText,
-                        ),
+                      _ThemeToggleBtn(
+                        icon: Icons.brightness_auto_rounded,
+                        selected: helper.themeMode == ThemeMode.system,
+                        accent: helper.primaryColor,
+                        onTap: () => helper.setThemeMode(ThemeMode.system),
                       ),
-                      Text(
-                        'Theme mode & accent color',
-                        style: GoogleFonts.poppins(
-                            fontSize: 12, color: t.bodyText),
+                      const SizedBox(width: 2),
+                      _ThemeToggleBtn(
+                        icon: Icons.wb_sunny_rounded,
+                        selected: helper.themeMode == ThemeMode.light,
+                        accent: helper.primaryColor,
+                        onTap: () => helper.setThemeMode(ThemeMode.light),
+                      ),
+                      const SizedBox(width: 2),
+                      _ThemeToggleBtn(
+                        icon: Icons.nightlight_rounded,
+                        selected: helper.themeMode == ThemeMode.dark,
+                        accent: helper.primaryColor,
+                        onTap: () => helper.setThemeMode(ThemeMode.dark),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            // ── Theme mode chips ─────────────────────────────
-            Row(
+          ),
+          Divider(height: 1, indent: 68, endIndent: 16, color: t.divider),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            child: Row(
               children: [
-                _ThemeChip(
-                  icon: Icons.brightness_auto_rounded,
-                  label: 'System',
-                  selected: helper.themeMode == ThemeMode.system,
-                  accent: helper.primaryColor,
-                  onTap: () => helper.setThemeMode(ThemeMode.system),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: helper.primaryColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.language,
+                      size: 19, color: helper.primaryColor),
                 ),
-                const SizedBox(width: 8),
-                _ThemeChip(
-                  icon: Icons.wb_sunny_rounded,
-                  label: 'Light',
-                  selected: helper.themeMode == ThemeMode.light,
-                  accent: helper.primaryColor,
-                  onTap: () => helper.setThemeMode(ThemeMode.light),
-                ),
-                const SizedBox(width: 8),
-                _ThemeChip(
-                  icon: Icons.nightlight_rounded,
-                  label: 'Dark',
-                  selected: helper.themeMode == ThemeMode.dark,
-                  accent: helper.primaryColor,
-                  onTap: () => helper.setThemeMode(ThemeMode.dark),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Divider(height: 1, color: t.divider),
-            const SizedBox(height: 14),
-
-            // ── Accent color label ───────────────────────────
-            Text(
-              'Accent Color',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: t.bodyText,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ── Swatches + rainbow picker ────────────────────
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                ..._kPresets.map(
-                  (c) => _ColorSwatch(
-                    color: c,
-                    selected: helper.primaryColor.value == c.value,
-                    onTap: () => helper.setPrimaryColor(c),
+                const SizedBox(width: 14),
+                Text(
+                  'Language',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    color: t.titleText,
                   ),
                 ),
-                _RainbowSwatch(
-                  surfaceColor: t.surface,
-                  onTap: () async {
-                    final picked = await showDialog<Color>(
-                      context: context,
-                      builder: (_) =>
-                          _ColorPickerDialog(initial: helper.primaryColor),
-                    );
-                    if (picked != null) {
-                      helper.setPrimaryColor(picked);
-                      showToast(context, 'Accent color updated',
-                          type: ToastType.success);
-                    }
-                  },
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: t.surfaceElevated,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _LanguageToggleBtn(
+                        label: '🇰🇭',
+                        selected: helper.locale.languageCode == 'km',
+                        accent: helper.primaryColor,
+                        onTap: () => helper.setLocale(const Locale('km')),
+                      ),
+                      const SizedBox(width: 2),
+                      _LanguageToggleBtn(
+                        label: '🇺🇸',
+                        selected: helper.locale.languageCode == 'en',
+                        accent: helper.primaryColor,
+                        onTap: () => helper.setLocale(const Locale('en')),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          Divider(height: 1, indent: 68, endIndent: 16, color: t.divider),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: helper.primaryColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.palette_rounded,
+                      size: 19, color: helper.primaryColor),
+                ),
+                const SizedBox(width: 14),
+                Text(
+                  'Accent Color',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    color: t.titleText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 48,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Row(
+                children: [
+                  ..._kPresets.map(
+                    (c) => _SmallSwatch(
+                      color: c,
+                      selected: helper.primaryColor.value == c.value,
+                      onTap: () => helper.setPrimaryColor(c),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  _SmallRainbow(
+                    surfaceColor: t.surface,
+                    onTap: () async {
+                      final picked = await showDialog<Color>(
+                        context: context,
+                        builder: (_) =>
+                            _ColorPickerDialog(initial: helper.primaryColor),
+                      );
+                      if (picked != null) {
+                        helper.setPrimaryColor(picked);
+                        showToast(context, 'Accent color updated',
+                            type: ToastType.success);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Divider(height: 1, indent: 68, endIndent: 16, color: t.divider),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          //   child: Row(
+          //     children: [
+          //       Container(
+          //         width: 38,
+          //         height: 38,
+          //         decoration: BoxDecoration(
+          //           color: helper.primaryColor,
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         child: const Icon(Icons.language,
+          //             size: 19, color: Colors.white),
+          //       ),
+          //       const SizedBox(width: 14),
+          //       Text(
+          //         'Language',
+          //         style: GoogleFonts.poppins(
+          //           fontSize: 14.5,
+          //           fontWeight: FontWeight.w500,
+          //           color: t.titleText,
+          //         ),
+          //       ),
+          //       const Spacer(),
+          //       Container(
+          //         padding: const EdgeInsets.all(3),
+          //         decoration: BoxDecoration(
+          //           color: t.surfaceElevated,
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         child: Row(
+          //           mainAxisSize: MainAxisSize.min,
+          //           children: [
+          //             _LanguageToggleBtn(
+          //               label: '🇰🇭',
+          //               selected: helper.locale.languageCode == 'km',
+          //               accent: helper.primaryColor,
+          //               onTap: () => helper.setLocale(const Locale('km')),
+          //             ),
+          //             const SizedBox(width: 2),
+          //             _LanguageToggleBtn(
+          //               label: '🇺🇸',
+          //               selected: helper.locale.languageCode == 'en',
+          //               accent: helper.primaryColor,
+          //               onTap: () => helper.setLocale(const Locale('en')),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+        ],
       ),
     );
   }
 }
 
-// ─── Theme mode chip ──────────────────────────────────────────────────────────
-
-class _ThemeChip extends StatelessWidget {
+class _ThemeToggleBtn extends StatelessWidget {
   final IconData icon;
-  final String label;
   final bool selected;
   final Color accent;
   final VoidCallback onTap;
 
-  const _ThemeChip({
+  const _ThemeToggleBtn({
     required this.icon,
-    required this.label,
     required this.selected,
     required this.accent,
     required this.onTap,
@@ -1193,53 +1213,35 @@ class _ThemeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.appTheme;
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? accent.withValues(alpha: 0.10) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selected ? accent : t.divider,
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon,
-                  size: 18, color: selected ? accent : t.hintText),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected ? accent : t.hintText,
-                ),
-              ),
-            ],
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: selected ? accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: selected ? Colors.white : context.appTheme.iconBlue,
         ),
       ),
     );
   }
 }
 
-// ─── Color swatch circle ──────────────────────────────────────────────────────
+// ─── Small color swatch (28 px) ───────────────────────────────────────────────
 
-class _ColorSwatch extends StatelessWidget {
+class _SmallSwatch extends StatelessWidget {
   final Color color;
   final bool selected;
   final VoidCallback onTap;
 
-  const _ColorSwatch({
+  const _SmallSwatch({
     required this.color,
     required this.selected,
     required this.onTap,
@@ -1250,53 +1252,51 @@ class _ColorSwatch extends StatelessWidget {
     final t = context.appTheme;
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          border: selected
-              ? Border.all(color: t.titleText, width: 2.5)
-              : null,
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.45),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
+      child: Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+            border: selected ? Border.all(color: t.titleText, width: 2.5) : null,
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.45),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: selected
+              ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
               : null,
         ),
-        child: selected
-            ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
-            : null,
       ),
     );
   }
 }
 
-// ─── Rainbow custom-color swatch ─────────────────────────────────────────────
+// ─── Small rainbow custom picker swatch ──────────────────────────────────────
 
-class _RainbowSwatch extends StatelessWidget {
+class _SmallRainbow extends StatelessWidget {
   final VoidCallback onTap;
   final Color surfaceColor;
 
-  const _RainbowSwatch({
-    required this.onTap,
-    required this.surfaceColor,
-  });
+  const _SmallRainbow({required this.onTap, required this.surfaceColor});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 42,
-        height: 42,
+        width: 28,
+        height: 28,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           gradient: SweepGradient(colors: [
@@ -1311,193 +1311,57 @@ class _RainbowSwatch extends StatelessWidget {
           ]),
         ),
         child: Container(
-          margin: const EdgeInsets.all(5),
+          margin: const EdgeInsets.all(4),
           decoration:
               BoxDecoration(shape: BoxShape.circle, color: surfaceColor),
           child: Icon(Icons.add_rounded,
-              size: 17, color: context.appTheme.hintText),
+              size: 13, color: context.appTheme.hintText),
         ),
       ),
     );
   }
 }
 
-// ─── Language card ────────────────────────────────────────────────────────────
+// ─── Language toggle button ──────────────────────────────────────────────────
 
-class _LanguageCard extends StatelessWidget {
-  final HelperProvider helper;
-  const _LanguageCard({required this.helper});
+class _LanguageToggleBtn extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
 
-  static const _langs = [
-    _LangOption(
-        locale: Locale('km'),
-        flag: '🇰🇭',
-        label: 'ភាសាខ្មែរ',
-        code: 'km-KH'),
-    _LangOption(
-        locale: Locale('en'),
-        flag: '🇺🇸',
-        label: 'English',
-        code: 'en-US'),
-  ];
+  const _LanguageToggleBtn({
+    required this.label,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final t = context.appTheme;
-    final current = helper.locale.languageCode;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: t.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: context.isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF57C00),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.language_rounded,
-                      size: 19, color: Colors.white),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).appLanguage,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w500,
-                          color: t.titleText,
-                        ),
-                      ),
-                      Text(
-                        AppLocalizations.of(context).chooseLanguage,
-                        style: GoogleFonts.poppins(
-                            fontSize: 12, color: t.bodyText),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: selected ? accent : context.appTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              color: selected ? Colors.white : context.appTheme.iconBlue,
             ),
-            const SizedBox(height: 14),
-            Divider(height: 1, color: t.divider),
-            const SizedBox(height: 14),
-
-            // Language pills
-            Row(
-              children: _langs.asMap().entries.map((e) {
-                final lang = e.value;
-                final isLast = e.key == _langs.length - 1;
-                final sel = current == lang.locale.languageCode;
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: isLast ? 0 : 10),
-                    child: GestureDetector(
-                      onTap: () => helper.setLocale(lang.locale),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: sel
-                              ? helper.primaryColor.withValues(alpha: 0.08)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: sel
-                                ? helper.primaryColor
-                                : t.divider,
-                            width: sel ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(lang.flag,
-                                style: const TextStyle(fontSize: 18)),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    lang.label,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: sel
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                      color: sel
-                                          ? helper.primaryColor
-                                          : t.titleText,
-                                    ),
-                                  ),
-                                  Text(
-                                    lang.code,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 10, color: t.hintText),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (sel) ...[
-                              const SizedBox(width: 6),
-                              Icon(Icons.check_circle_rounded,
-                                  size: 15,
-                                  color: helper.primaryColor),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
-}
-
-class _LangOption {
-  final Locale locale;
-  final String flag;
-  final String label;
-  final String code;
-
-  const _LangOption({
-    required this.locale,
-    required this.flag,
-    required this.label,
-    required this.code,
-  });
 }
 
 // ─── Version footer ───────────────────────────────────────────────────────────
@@ -1520,7 +1384,7 @@ class _VersionFooter extends StatelessWidget {
         Text(
           strings.copyright,
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontSize: 11, color: t.divider),
+          style: GoogleFonts.poppins(fontSize: 11, color: t.hintText),
         ),
       ],
     );

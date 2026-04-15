@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:note_app/core/presentation/pages/favorites_page/favorites_page.dart';
+import 'package:note_app/core/presentation/pages/chat_page/chat_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
@@ -46,7 +46,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const FavoritesPage(),
+    const ChatPage(),
     const SettingsPage(),
   ];
 
