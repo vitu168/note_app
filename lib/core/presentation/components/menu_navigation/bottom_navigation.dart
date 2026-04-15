@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
-/// Dark pill-shaped floating bottom navigation bar with an integrated FAB.
 class AppBottomNavigation extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -14,13 +14,14 @@ class AppBottomNavigation extends StatelessWidget {
     required this.onFabTapped,
   });
 
-  static const Color _kNavBg = Color(0xFF1A1826);
-  static const Color _kIconInactive = Color(0xFF9E9EB8);
-
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
-    final Color accent = Theme.of(context).colorScheme.primary;
+    final t = context.appTheme;
+    final isDark = context.isDark;
+    final Color accent = t.primary;
+    final Color navBg = t.surface;
+    final Color inactiveColor = t.hintText;
 
     return Semantics(
       container: true,
@@ -33,11 +34,13 @@ class AppBottomNavigation extends StatelessWidget {
               child: Container(
                 height: 68,
                 decoration: BoxDecoration(
-                  color: _kNavBg,
+                  color: navBg,
                   borderRadius: BorderRadius.circular(50),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.28),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.28 : 0.10,
+                      ),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -51,35 +54,26 @@ class AppBottomNavigation extends StatelessWidget {
                       label: strings.home,
                       selected: currentIndex == 0,
                       accent: accent,
-                      inactiveColor: _kIconInactive,
+                      inactiveColor: inactiveColor,
                       onTap: () => onTap(0),
                     ),
                     _NavItem(
-                      icon: Icons.star_outline_rounded,
-                      activeIcon: Icons.star_rounded,
+                      icon: Icons.archive_outlined,
+                      activeIcon: Icons.archive,
                       label: strings.favorites,
                       selected: currentIndex == 1,
                       accent: accent,
-                      inactiveColor: _kIconInactive,
+                      inactiveColor: inactiveColor,
                       onTap: () => onTap(1),
-                    ),
-                    _NavItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: strings.profile,
-                      selected: currentIndex == 2,
-                      accent: accent,
-                      inactiveColor: _kIconInactive,
-                      onTap: () => onTap(2),
                     ),
                     _NavItem(
                       icon: Icons.settings_outlined,
                       activeIcon: Icons.settings_rounded,
                       label: strings.settings,
-                      selected: currentIndex == 3,
+                      selected: currentIndex == 2,
                       accent: accent,
-                      inactiveColor: _kIconInactive,
-                      onTap: () => onTap(3),
+                      inactiveColor: inactiveColor,
+                      onTap: () => onTap(2),
                     ),
                   ],
                 ),

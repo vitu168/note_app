@@ -7,6 +7,8 @@ import 'package:note_app/core/presentation/components/empty_data.dart';
 import 'package:note_app/core/presentation/pages/note_view_page/note_view_page.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
+import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/core/theme/app_theme_extension.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -44,37 +46,50 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  IconData _greetingIcon() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return Icons.wb_sunny_rounded;
+    if (hour < 17) return Icons.wb_cloudy_rounded;
+    return Icons.nightlight_round;
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomePageProvider>();
     final l10n = AppLocalizations.of(context);
     final filteredNotes = provider.filteredNotes;
-    final theme = Theme.of(context);
+    final t = context.appTheme;
     final profile = context.watch<UserProfileProvider>().profile;
     final userName = profile?.name ?? profile?.email ?? l10n.profileName;
-    final userEmail = profile?.email ?? l10n.profileEmail;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: t.surfaceElevated,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header ─────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: _buildHeader(context, theme, l10n, userName, userEmail),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: _buildHeader(context, t, l10n, userName),
             ),
 
-            itemGap(height: 16),
+            itemGap(height: 20),
 
             // ── Search bar ─────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildSearchBar(context, provider, l10n, theme),
+              child: _buildSearchBar(context, provider, l10n, t),
             ),
 
-            itemGap(height: 20),
+            itemGap(height: 24),
 
             // ── Section title + count ──────────────────────────
             Padding(
@@ -86,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
+                      color: t.titleText,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -94,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      color: t.primaryMuted,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -102,11 +117,10 @@ class _HomePageState extends State<HomePage> {
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
+                        color: t.primary,
                       ),
                     ),
                   ),
-                  const Spacer(),
                 ],
               ),
             ),
@@ -143,43 +157,61 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, ThemeData theme,
-      AppLocalizations l10n, String userName, String userEmail) {
+  Widget _buildHeader(
+    BuildContext context,
+    AppThemeExtension t,
+    AppLocalizations l10n,
+    String userName,
+  ) {
     final initial = userName.isNotEmpty ? userName[0].toUpperCase() : '?';
     return Row(
       children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-          child: Text(
-            initial,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+        // Avatar with initial
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: t.primaryMuted,
+          ),
+          child: Center(
+            child: Text(
+              initial,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: t.primary,
+              ),
             ),
           ),
         ),
         const SizedBox(width: 12),
+        // Greeting + name
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              Row(
+                children: [
+                  Icon(_greetingIcon(), size: 14, color: t.hintText),
+                  const SizedBox(width: 4),
+                  Text(
+                    _greeting(),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: t.hintText,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
               Text(
                 userName,
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                userEmail,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  fontWeight: FontWeight.w700,
+                  color: t.titleText,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -187,37 +219,71 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+        // Notification button
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: t.surface,
+            shape: BoxShape.circle,
+            boxShadow: context.isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.07),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: t.bodyText,
+              size: 22,
+            ),
+            tooltip: l10n.notifications,
+            onPressed: () {},
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, HomePageProvider provider,
-      AppLocalizations l10n, ThemeData theme) {
+  Widget _buildSearchBar(
+    BuildContext context,
+    HomePageProvider provider,
+    AppLocalizations l10n,
+    AppThemeExtension t,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: t.surface,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: context.isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: TextField(
         controller: _searchController,
         onChanged: provider.setSearch,
-        style: GoogleFonts.poppins(fontSize: 14),
+        style: GoogleFonts.poppins(fontSize: 14, color: t.bodyText),
         decoration: InputDecoration(
           hintText: l10n.searchHint,
           hintStyle: GoogleFonts.poppins(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            color: t.hintText,
             fontSize: 14,
           ),
           prefixIcon: Icon(
             Icons.search_rounded,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            color: t.hintText,
             size: 20,
           ),
           border: InputBorder.none,

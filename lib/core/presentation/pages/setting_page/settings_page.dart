@@ -1,16 +1,20 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:note_app/core/models/user_profile.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
+import 'package:note_app/core/providers/user_profile_provider.dart';
+import 'package:note_app/core/services/storage_service.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:provider/provider.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:note_app/core/data/supabase/auth_service.dart';
 import 'package:note_app/core/presentation/auth/welcome_page.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
-import 'package:note_app/core/presentation/utils/user_utils.dart';
 
 // ─── Accent color presets shown in the Appearance card ────────────────────────
 const _kPresets = <Color>[
@@ -66,132 +70,47 @@ class _SettingsPageState extends State<SettingsPage>
     final helper = context.watch<HelperProvider>();
     final t = context.appTheme;
     final strings = AppLocalizations.of(context);
-    final canPop = Navigator.of(context).canPop();
+    Navigator.of(context).canPop();
 
     return Scaffold(
       backgroundColor: t.surfaceElevated,
-      appBar: AppBar(
-        leading: canPop
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        title: Text(strings.settings),
-        elevation: 0,
-      ),
       body: FadeTransition(
         opacity: _fade,
         child: SlideTransition(
           position: _slide,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 48),
             children: [
-              // ── Profile ───────────────────────────────────────
-              _ProfileBanner(helper: helper),
-              const SizedBox(height: 28),
+              // ── User Profile Card ─────────────────────────────
+              _UserProfileCard(),
+              const SizedBox(height: 32),
 
               // ── Appearance ────────────────────────────────────
-              _SectionBlock(
-                label: 'Appearance',
-                child: _AppearanceCard(helper: helper),
-              ),
-              const SizedBox(height: 20),
+              _SectionLabel(label: 'Appearance'),
+              const SizedBox(height: 12),
+              _AppearanceCard(helper: helper),
+              const SizedBox(height: 32),
 
               // ── Language ──────────────────────────────────────
-              _SectionBlock(
-                label: strings.appLanguage,
-                child: _LanguageCard(helper: helper),
-              ),
-              const SizedBox(height: 20),
+              _SectionLabel(label: strings.appLanguage),
+              const SizedBox(height: 12),
+              _LanguageCard(helper: helper),
+              const SizedBox(height: 32),
 
-              // ── Security ──────────────────────────────────────
-              _SectionBlock(
-                label: strings.security,
-                child: _SettingsGroup(children: [
-                  _SettingRow(
-                    icon: Icons.fingerprint_rounded,
-                    iconBg: t.iconBlue,
-                    title: strings.biometric,
-                    subtitle: strings.biometricDesc,
-                    trailing: Switch.adaptive(
-                      value: false,
-                      activeColor: helper.primaryColor,
-                      onChanged: (v) => showToast(
-                        context,
-                        'Biometric lock ${v ? "enabled" : "disabled"}',
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Notifications ─────────────────────────────────
-              _SectionBlock(
-                label: strings.notifications,
-                child: _SettingsGroup(children: [
-                  _SettingRow(
-                    icon: Icons.notifications_rounded,
-                    iconBg: t.iconOrange,
-                    title: strings.enableNotifications,
-                    subtitle: strings.notificationsDesc,
-                    trailing: Switch.adaptive(
-                      value: false,
-                      activeColor: helper.primaryColor,
-                      onChanged: (v) => showToast(
-                        context,
-                        strings.notificationSettingsUpdated,
-                        type: ToastType.info,
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Account ───────────────────────────────────────
-              _SectionBlock(
-                label: strings.account,
-                child: _SettingsGroup(children: [
-                  _SettingRow(
-                    icon: Icons.grid_view_rounded,
-                    iconBg: t.iconTeal,
-                    title: strings.gridView,
-                    subtitle: strings.gridViewDesc,
-                    onTap: () => showToast(
-                      context,
-                      'View preference updated',
-                      type: ToastType.info,
-                    ),
-                  ),
-                  _SettingRow(
-                    icon: Icons.feedback_outlined,
-                    iconBg: t.iconGreen,
-                    title: strings.feedback,
-                    subtitle: strings.feedbackDesc,
-                    onTap: () =>
-                        showToast(context, strings.feedbackComingSoon),
-                  ),
-                  _SettingRow(
-                    icon: Icons.delete_outline_rounded,
-                    iconBg: t.iconRed,
-                    title: strings.clearNotes,
-                    subtitle: strings.clearNotesDesc,
-                    isDestructive: true,
-                    onTap: () => _showClearDialog(context, strings),
-                  ),
-                  _SettingRow(
-                    icon: Icons.logout_rounded,
-                    iconBg: t.iconRed,
-                    title: strings.logout,
-                    subtitle: strings.logoutDesc,
-                    isDestructive: true,
-                    onTap: () => _showLogoutDialog(context, strings),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 36),
+              // ── Logout ────────────────────────────────────────
+              _SectionLabel(label: 'Account'),
+              const SizedBox(height: 12),
+              _SettingsGroup(children: [
+                _SettingRow(
+                  icon: Icons.logout_rounded,
+                  iconBg: t.iconRed,
+                  title: strings.logout,
+                  subtitle: strings.logoutDesc,
+                  isDestructive: true,
+                  onTap: () => _showLogoutDialog(context, strings),
+                ),
+              ]),
+              const SizedBox(height: 40),
 
               // ── Footer ────────────────────────────────────────
               _VersionFooter(strings: strings),
@@ -203,31 +122,6 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   // ── Dialogs ────────────────────────────────────────────────────────────────
-
-  void _showClearDialog(BuildContext context, AppLocalizations strings) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings.clearNotes),
-        content: Text(strings.clearNotesDesc),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(strings.cancel),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-                foregroundColor: context.appTheme.danger),
-            onPressed: () {
-              Navigator.pop(ctx);
-              showToast(context, '${strings.clearNotes}!');
-            },
-            child: Text(strings.clear),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showLogoutDialog(BuildContext context, AppLocalizations strings) {
     showDialog(
@@ -286,119 +180,656 @@ class _SettingsPageState extends State<SettingsPage>
   }
 }
 
-// ─── Profile banner ───────────────────────────────────────────────────────────
+// ─── Edit profile sheet launcher ─────────────────────────────────────────────
 
-class _ProfileBanner extends StatelessWidget {
-  final HelperProvider helper;
-  const _ProfileBanner({required this.helper});
+void _showEditProfileSheet(BuildContext context) {
+  final profile = context.read<UserProfileProvider>().profile;
+  if (profile == null) return;
+  final user = AuthService.currentUser();
+  final email = user?.email ?? profile.email ?? '';
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _EditProfileSheet(profile: profile, initialEmail: email),
+  );
+}
+
+// ─── User Profile Card ─────────────────────────────────────────────────────────
+
+class _UserProfileCard extends StatelessWidget {
+  const _UserProfileCard();
 
   @override
   Widget build(BuildContext context) {
     final user = AuthService.currentUser();
-    final meta = user?.userMetadata;
-    final rawName = meta != null
-        ? (meta['name'] ??
-                meta['full_name'] ??
-                meta['preferred_username'] ??
-                meta['display_name'])
-            ?.toString()
-        : null;
-    final name =
-        (rawName != null && rawName.trim().isNotEmpty)
-            ? rawName
-            : extractNameFromEmail(user?.email);
+    final profile = context.watch<UserProfileProvider>().profile;
+    final t = context.appTheme;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            helper.primaryColor,
-            Color.lerp(helper.primaryColor, Colors.deepPurple, 0.28)!,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: helper.primaryColor.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+    final name = profile?.name ?? user?.email ?? 'User';
+    final email = user?.email ?? '';
+    final avatarUrl = profile?.avatarUrl;
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
+    return Column(
+      children: [
+            // Top gradient area with edit button
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: GestureDetector(
+              onTap: () => _showEditProfileSheet(context),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: t.surface.withValues(alpha: 0.85),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.10),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.edit_rounded,
+                  size: 17,
+                  color: t.primary,
+                ),
+              ),
+            ),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 58,
-            height: 58,
+        ),
+        
+        // Avatar - Large profile image (overlapping)
+        Transform.translate(
+          offset: const Offset(0, -50),
+          child: Container(
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.18),
               border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35), width: 2),
-            ),
-            child:
-                const Icon(Icons.person_rounded, size: 30, color: Colors.white),
-          ),
-          const SizedBox(width: 16),
-          // Name / email
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  name,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  user?.email ?? '',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.80),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                color: t.surface,
+                width: 5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: t.primary.withValues(alpha: 0.25),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
                 ),
               ],
             ),
+            child: ClipOval(
+              child: avatarUrl != null && avatarUrl.isNotEmpty
+                  ? Image.network(
+                      avatarUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: t.primaryMuted,
+                          child: Center(
+                            child: Text(
+                              initial,
+                              style: GoogleFonts.poppins(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w700,
+                                color: t.primary,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: t.primaryMuted,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                              valueColor: AlwaysStoppedAnimation(t.primary),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: t.primaryMuted,
+                      child: Center(
+                        child: Text(
+                          initial,
+                          style: GoogleFonts.poppins(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w700,
+                            color: t.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
           ),
-          // Edit button
-          Material(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () =>
-                  showToast(context, AppLocalizations.of(context).editSoon),
-              child: const Padding(
-                padding: EdgeInsets.all(9),
-                child: Icon(Icons.edit_rounded, size: 18, color: Colors.white),
+        ),
+        
+        // User info
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Name
+              Text(
+                name,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: t.titleText,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 6),
+              // Email
+              Text(
+                email,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: t.hintText,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              // Divider
+              Container(
+                height: 1,
+                color: t.divider,
+              ),
+              const SizedBox(height: 14),
+              // Profile status badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: t.primaryMuted,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: t.success,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Active',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: t.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Edit Profile Bottom Sheet ───────────────────────────────────────────────
+
+class _EditProfileSheet extends StatefulWidget {
+  final UserProfile profile;
+  final String initialEmail;
+
+  const _EditProfileSheet({
+    required this.profile,
+    required this.initialEmail,
+  });
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _emailCtrl;
+  bool _saving = false;
+  bool _uploadingImage = false;
+  // null = keep existing, '' = cleared, non-empty = new URL
+  String? _pendingAvatarUrl;
+
+  String get _currentAvatarUrl =>
+      _pendingAvatarUrl ?? widget.profile.avatarUrl ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.profile.name ?? '');
+    _emailCtrl = TextEditingController(text: widget.initialEmail);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    super.dispose();
+  }
+
+  // ── Image picking ────────────────────────────────────────────────────────
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() => _uploadingImage = true);
+    try {
+      final file = File(picked.path);
+      final userId = widget.profile.id;
+      final url = await StorageService().uploadAvatar(
+        imageFile: file,
+        userId: userId,
+      );
+      if (mounted) setState(() => _pendingAvatarUrl = url);
+    } catch (e) {
+      if (mounted) {
+        showToast(
+          context,
+          'Upload failed. Make sure the "avatars" storage bucket exists in Supabase.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingImage = false);
+    }
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final t = context.appTheme;
+        return Container(
+          decoration: BoxDecoration(
+            color: t.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: t.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(
+                'Change Profile Photo',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: t.titleText,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ImageSourceOption(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'Camera',
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _pickImage(ImageSource.camera);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _ImageSourceOption(
+                      icon: Icons.photo_library_rounded,
+                      label: 'Gallery',
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _pickImage(ImageSource.gallery);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ── Save ─────────────────────────────────────────────────────────────────
+
+  Future<void> _save() async {
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+
+    if (name.isEmpty) {
+      showToast(context, 'Name cannot be empty');
+      return;
+    }
+    if (email.isEmpty) {
+      showToast(context, 'Email cannot be empty');
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      await context.read<UserProfileProvider>().updateProfile(
+            name: name,
+            avatarUrl: _currentAvatarUrl,
+            email: email,
+          );
+      if (mounted) {
+        Navigator.pop(context);
+        showToast(context, 'Profile updated', type: ToastType.success);
+      }
+    } catch (_) {
+      if (mounted) {
+        showToast(context, 'Failed to update profile');
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.appTheme;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final name = _nameCtrl.text.isNotEmpty ? _nameCtrl.text : '?';
+    final initial = name[0].toUpperCase();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.surfaceElevated,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Drag handle ───────────────────────────────────
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: t.divider,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // ── Avatar picker ─────────────────────────────────
+          GestureDetector(
+            onTap: _uploadingImage ? null : _showImageSourceSheet,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Avatar circle
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: t.primary.withValues(alpha: 0.30),
+                      width: 3,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: _uploadingImage
+                        ? Container(
+                            color: t.primaryMuted,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation(t.primary),
+                              ),
+                            ),
+                          )
+                        : _currentAvatarUrl.isNotEmpty
+                            ? Image.network(
+                                _currentAvatarUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    _avatarFallback(t, initial),
+                                loadingBuilder: (_, child, progress) =>
+                                    progress == null
+                                        ? child
+                                        : _avatarFallback(t, initial),
+                              )
+                            : _avatarFallback(t, initial),
+                  ),
+                ),
+                // Camera badge overlay
+                if (!_uploadingImage)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: t.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: t.surfaceElevated, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Edit Profile',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: t.titleText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: _uploadingImage ? null : _showImageSourceSheet,
+            child: Text(
+              'Tap photo to change',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: t.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // ── Name field ────────────────────────────────────
+          _EditField(
+            controller: _nameCtrl,
+            label: 'Display Name',
+            icon: Icons.person_outline_rounded,
+            hint: 'Your name',
+          ),
+          const SizedBox(height: 14),
+
+          // ── Email field ───────────────────────────────────
+          _EditField(
+            controller: _emailCtrl,
+            label: 'Email',
+            icon: Icons.email_outlined,
+            hint: 'your@email.com',
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 28),
+
+          // ── Save button ───────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: (_saving || _uploadingImage) ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: t.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: _saving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      'Save Changes',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _avatarFallback(dynamic t, String initial) {
+    return Container(
+      color: t.primaryMuted,
+      child: Center(
+        child: Text(
+          initial,
+          style: GoogleFonts.poppins(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            color: t.primary,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-// ─── Section wrapper (label + rounded card) ──────────────────────────────────
+// ─── Image Source Option Button ───────────────────────────────────────────────
 
-class _SectionBlock extends StatelessWidget {
+class _ImageSourceOption extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final Widget child;
-  const _SectionBlock({required this.label, required this.child});
+  final VoidCallback onTap;
+
+  const _ImageSourceOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.appTheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: t.surfaceElevated,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: t.divider),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: t.primaryMuted,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: t.primary),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: t.titleText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Reusable Edit Field ───────────────────────────────────────────────────────
+
+class _EditField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final TextInputType keyboardType;
+
+  const _EditField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.keyboardType = TextInputType.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -407,22 +838,72 @@ class _SectionBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: 2, bottom: 6),
           child: Text(
-            label.toUpperCase(),
+            label,
             style: GoogleFonts.poppins(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: t.hintText,
-              letterSpacing: 0.9,
+              letterSpacing: 0.4,
             ),
           ),
         ),
-        child,
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          style: GoogleFonts.poppins(fontSize: 14, color: t.titleText),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.poppins(fontSize: 14, color: t.hintText),
+            prefixIcon: Icon(icon, size: 18, color: t.hintText),
+            filled: true,
+            fillColor: t.surface,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: t.divider),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: t.divider),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: t.primary, width: 1.5),
+            ),
+          ),
+        ),
       ],
     );
   }
 }
+
+// ─── Section Label ────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.appTheme;
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Text(
+        label.toUpperCase(),
+        style: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: t.hintText,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
 
 // ─── Grouped settings card ────────────────────────────────────────────────────
 
@@ -468,10 +949,6 @@ class _SettingRow extends StatelessWidget {
   final Color iconBg;
   final String title;
   final String subtitle;
-
-  /// Custom trailing widget. When null: shows chevron for tappable rows,
-  /// or nothing if [onTap] is also null.
-  final Widget? trailing;
   final VoidCallback? onTap;
   final bool isDestructive;
 
@@ -480,7 +957,6 @@ class _SettingRow extends StatelessWidget {
     required this.iconBg,
     required this.title,
     required this.subtitle,
-    this.trailing,
     this.onTap,
     this.isDestructive = false,
   });
@@ -530,10 +1006,8 @@ class _SettingRow extends StatelessWidget {
               ],
             ),
           ),
-          // Trailing
-          if (trailing != null)
-            trailing!
-          else if (onTap != null)
+          // Trailing icon
+          if (onTap != null)
             Icon(Icons.chevron_right_rounded, size: 20, color: t.hintText),
         ],
       ),

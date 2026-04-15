@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/core/data/supabase/auth_service.dart';
 import 'package:note_app/core/models/user_profile.dart';
 import 'package:note_app/core/services/user_profile_api_service.dart';
 
@@ -49,24 +48,34 @@ class UserProfileProvider extends ChangeNotifier {
     }
   }
 
-  /// Update the profile name / avatar on the backend.
-  Future<void> updateProfile({String? name, String? avatarUrl}) async {
-    final user = AuthService.currentUser();
-    if (user == null || _profile == null) return;
+  /// Update the profile on the backend and refresh local state.
+  Future<void> updateProfile({
+    required String name,
+    required String avatarUrl,
+    required String email,
+  }) async {
+    if (_profile == null) return;
 
     _loading = true;
     notifyListeners();
 
     try {
+      final isNote = _profile!.isNote ?? false;
       await _service.updateProfile(
-        id: user.id,
+        id: _kFixedUserId,
         name: name,
         avatarUrl: avatarUrl,
-        email: user.email,
+        email: email,
+        isNote: isNote,
       );
-      _profile = _profile!.copyWith(name: name, avatarUrl: avatarUrl);
+      _profile = _profile!.copyWith(
+        name: name,
+        avatarUrl: avatarUrl,
+        email: email,
+      );
     } catch (e) {
       _error = e.toString();
+      rethrow;
     } finally {
       _loading = false;
       notifyListeners();

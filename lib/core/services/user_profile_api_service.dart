@@ -71,19 +71,19 @@ class UserProfileApiService {
   }
 
   /// PUT /api/UserProfile/{id}
+  /// Payload: { name, avatarUrl, email, isNote }
   Future<void> updateProfile({
     required String id,
-    String? name,
-    String? avatarUrl,
-    String? email,
-    bool? isNote,
+    required String name,
+    required String avatarUrl,
+    required String email,
+    required bool isNote,
   }) async {
     final body = <String, dynamic>{
-      'id': id,
-      if (name != null) 'name': name,
-      if (avatarUrl != null) 'avatarUrl': avatarUrl,
-      if (email != null) 'email': email,
-      if (isNote != null) 'isNote': isNote,
+      'name': name,
+      'avatarUrl': avatarUrl,
+      'email': email,
+      'isNote': isNote,
     };
     await _api.put('/api/UserProfile/$id', data: body);
   }

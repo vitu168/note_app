@@ -4,7 +4,6 @@ import 'package:note_app/core/presentation/pages/favorites_page/favorites_page.d
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
-import 'package:note_app/core/presentation/pages/profile_page/profile_page.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:note_app/core/presentation/components/menu_navigation/menu_navigation.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
@@ -48,7 +47,6 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     const HomePage(),
     const FavoritesPage(),
-    const ProfilePage(),
     const SettingsPage(),
   ];
 
