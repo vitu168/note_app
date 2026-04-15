@@ -6,6 +6,7 @@ import 'package:note_app/core/constants/font_constant.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/core/presentation/components/form_text_input.dart';
 import 'package:note_app/core/presentation/components/empty_data.dart';
+import 'package:note_app/core/presentation/widgets/skeleton/note_card_skeleton.dart';
 import 'package:provider/provider.dart';
 
 class ArchivePage extends StatefulWidget {
@@ -117,7 +118,9 @@ class _ArchivePageState extends State<ArchivePage> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: filteredNotes.isEmpty
+              child: provider.loading
+                  ? NoteListSkeleton(isGrid: _isGridView)
+                  : filteredNotes.isEmpty
                   ? const EmptyData(message: 'No archived notes')
                   : _isGridView
                       ? GridView.builder(

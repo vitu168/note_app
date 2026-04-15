@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/components/item_gap.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
 import 'package:note_app/core/presentation/widgets/note_card.dart';
+import 'package:note_app/core/presentation/widgets/skeleton/note_card_skeleton.dart';
+import 'package:note_app/core/presentation/widgets/skeleton/shimmer_box.dart';
 import 'package:note_app/core/presentation/components/empty_data.dart';
 import 'package:note_app/core/presentation/pages/note_view_page/note_view_page.dart';
 import 'package:note_app/core/models/note_info.dart';
@@ -201,7 +203,7 @@ class _HomePageState extends State<HomePage> {
             // ── Notes list / grid ───────────────────────────────────────────
             Expanded(
               child: provider.loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? NoteListSkeleton(isGrid: provider.isGrid)
                   : filteredNotes.isEmpty
                       ? EmptyData(message: l10n.noNotes)
                       : RefreshIndicator(
@@ -252,7 +254,13 @@ class _HomePageState extends State<HomePage> {
     AppLocalizations l10n,
     String userName,
   ) {
-    final profile = context.watch<UserProfileProvider>().profile;
+    final profileProvider = context.watch<UserProfileProvider>();
+    final profile = profileProvider.profile;
+
+    if (profileProvider.loading && profile == null) {
+      return const _HeaderSkeleton();
+    }
+
     final initial = userName.isNotEmpty ? userName[0].toUpperCase() : '?';
     final avatarUrl = profile?.avatarUrl ?? '';
 
@@ -396,6 +404,37 @@ class _HomePageState extends State<HomePage> {
               const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         ),
       ),
+    );
+  }
+}
+
+// ── Header skeleton ─────────────────────────────────────────
+
+class _HeaderSkeleton extends StatelessWidget {
+  const _HeaderSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Avatar circle
+        const ShimmerBox(width: 60, height: 60, borderRadius: 30),
+        const SizedBox(width: 12),
+        // Greeting + name
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ShimmerBox(width: 100, height: 12, borderRadius: 6),
+              const SizedBox(height: 10),
+              ShimmerBox(width: 140, height: 16, borderRadius: 7),
+            ],
+          ),
+        ),
+        // Notification button placeholder
+        const ShimmerBox(width: 42, height: 42, borderRadius: 21),
+      ],
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:note_app/core/presentation/pages/chat_page/chat_page_provider.da
 import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:note_app/core/models/user_profile.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/core/presentation/widgets/skeleton/user_tile_skeleton.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
 class ChatPage extends StatefulWidget {
@@ -55,9 +56,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
               Expanded(
                 child: provider.loading
-                    ? Center(
-                        child: CircularProgressIndicator(strokeWidth: 2, color: t.primary),
-                      )
+                    ? const UserListSkeleton()
                     : () {
                         final displayUsers = provider.users
                             .where((user) => user.id != profile?.id)

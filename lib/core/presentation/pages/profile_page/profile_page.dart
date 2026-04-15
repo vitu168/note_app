@@ -5,6 +5,7 @@ import 'package:note_app/core/data/supabase/auth_service.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:note_app/core/presentation/utils/user_utils.dart';
+import 'package:note_app/core/presentation/widgets/skeleton/shimmer_box.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'dart:async';
 
@@ -83,69 +84,92 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 16),
 
             // Avatar
-            CircleAvatar(
-              radius: 52,
-              backgroundColor:
-                  theme.colorScheme.primary.withValues(alpha: 0.12),
-              child: Icon(
-                Icons.person_rounded,
-                size: 56,
-                color: theme.colorScheme.primary,
+            if (profileProvider.loading && profileProvider.profile == null) ...[
+              const ShimmerBox(width: 104, height: 104, borderRadius: 52),
+              const SizedBox(height: 16),
+              ShimmerBox(width: 160, height: 22, borderRadius: 8),
+              const SizedBox(height: 8),
+              ShimmerBox(width: 200, height: 14, borderRadius: 6),
+            ] else ...[
+              CircleAvatar(
+                radius: 52,
+                backgroundColor:
+                    theme.colorScheme.primary.withValues(alpha: 0.12),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 56,
+                  color: theme.colorScheme.primary,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Name
-            Text(
-              _userName ?? l10n.profileName,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
+              // Name
+              Text(
+                _userName ?? l10n.profileName,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // Email
-            Text(
-              _userEmail ?? l10n.profileEmail,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+              // Email
+              Text(
+                _userEmail ?? l10n.profileEmail,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
               ),
-            ),
+            ],
 
             const SizedBox(height: 32),
 
             // Stats row
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    value: '$totalNotes',
-                    label: l10n.notes,
-                    icon: Icons.note_rounded,
-                    theme: theme,
+            if (homeProvider.loading)
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCardSkeleton(theme: theme),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _StatCard(
-                    value: '$favoriteCount',
-                    label: l10n.favorites,
-                    icon: Icons.star_rounded,
-                    theme: theme,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCardSkeleton(theme: theme),
                   ),
-                ),
-              ],
-            ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      value: '$totalNotes',
+                      label: l10n.notes,
+                      icon: Icons.note_rounded,
+                      theme: theme,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      value: '$favoriteCount',
+                      label: l10n.favorites,
+                      icon: Icons.star_rounded,
+                      theme: theme,
+                    ),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 28),
 
-            // Backend profile info (if loaded)
-            if (profileProvider.profile != null) ...[
+            // Backend profile info
+            if (profileProvider.loading && profileProvider.profile == null)
+              _InfoSectionSkeleton(theme: theme)
+            else if (profileProvider.profile != null) ...[
               _InfoSection(
                 title: 'Account Info',
                 theme: theme,
@@ -314,6 +338,82 @@ class _InfoRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Stat card skeleton ────────────────────────────────────────────────────────
+
+class _StatCardSkeleton extends StatelessWidget {
+  const _StatCardSkeleton({required this.theme});
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          ShimmerBox(width: 28, height: 28, borderRadius: 6),
+          const SizedBox(height: 10),
+          ShimmerBox(width: 48, height: 28, borderRadius: 8),
+          const SizedBox(height: 6),
+          ShimmerBox(width: 56, height: 13, borderRadius: 5),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Info section skeleton ─────────────────────────────────────────────────────
+
+class _InfoSectionSkeleton extends StatelessWidget {
+  const _InfoSectionSkeleton({required this.theme});
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ShimmerBox(width: 100, height: 13, borderRadius: 5),
+        const SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: List.generate(3, (i) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    ShimmerBox(width: 18, height: 18, borderRadius: 5),
+                    const SizedBox(width: 12),
+                    ShimmerBox(width: 56, height: 13, borderRadius: 5),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ShimmerBox(width: double.infinity, height: 13, borderRadius: 5),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
     );
   }
 }
