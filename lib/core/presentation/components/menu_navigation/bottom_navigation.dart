@@ -1,211 +1,176 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/core/constants/color_constant.dart';
-import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 
-/// Reusable bottom navigation component used across the app.
+/// Dark pill-shaped floating bottom navigation bar with an integrated FAB.
 class AppBottomNavigation extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final VoidCallback onFabTapped;
 
   const AppBottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+    required this.onFabTapped,
+  });
+
+  static const Color _kNavBg = Color(0xFF1A1826);
+  static const Color _kIconInactive = Color(0xFF9E9EB8);
 
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
+    final Color accent = Theme.of(context).colorScheme.primary;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLarge * 3),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 6)),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLarge * 3),
-          child: Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: Semantics(
-              container: true,
-              label: 'Main navigation',
+    return Semantics(
+      container: true,
+      label: 'Main navigation',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        child: Row(
+          children: [
+            // Dark pill with 4 nav items
+            Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: _kNavBg,
+                  borderRadius: BorderRadius.circular(50),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
                   children: [
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _NavItem(
-                          icon: Icons.home_rounded,
-                          label: strings.home,
-                          selected: currentIndex == 0,
-                          onTap: () => onTap(0),
-                        ),
-                        _NavItem(
-                          icon: Icons.favorite_rounded,
-                          label: strings.favorites,
-                          selected: currentIndex == 1,
-                          onTap: () => onTap(1),
-                        ),
-                        _NavItem(
-                          icon: Icons.archive_rounded,
-                          label: strings.archive,
-                          selected: currentIndex == 2,
-                          onTap: () => onTap(2),
-                        ),
-                        _NavItem(
-                          icon: Icons.settings_rounded,
-                          label: strings.settings,
-                          selected: currentIndex == 3,
-                          onTap: () => onTap(3),
-                        ),
-                      ],
+                    _NavItem(
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home_rounded,
+                      label: strings.home,
+                      selected: currentIndex == 0,
+                      accent: accent,
+                      inactiveColor: _kIconInactive,
+                      onTap: () => onTap(0),
+                    ),
+                    _NavItem(
+                      icon: Icons.people_outline_rounded,
+                      activeIcon: Icons.people_rounded,
+                      label: strings.favorites,
+                      selected: currentIndex == 1,
+                      accent: accent,
+                      inactiveColor: _kIconInactive,
+                      onTap: () => onTap(1),
+                    ),
+                    _NavItem(
+                      icon: Icons.calendar_month_outlined,
+                      activeIcon: Icons.calendar_month_rounded,
+                      label: strings.archive,
+                      selected: currentIndex == 2,
+                      accent: accent,
+                      inactiveColor: _kIconInactive,
+                      onTap: () => onTap(2),
+                    ),
+                    _NavItem(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      activeIcon: Icons.chat_bubble_rounded,
+                      label: strings.settings,
+                      selected: currentIndex == 3,
+                      accent: accent,
+                      inactiveColor: _kIconInactive,
+                      onTap: () => onTap(3),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            // FAB circle – integrated into nav row
+            GestureDetector(
+              onTap: onFabTapped,
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: accent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.45),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// Telegram-style compact navigation item (icon-only with circular selected background).
-class _NavItem extends StatefulWidget {
+class _NavItem extends StatelessWidget {
   final IconData icon;
-  final String label; // used for semantics/accessibility
+  final IconData activeIcon;
+  final String label;
   final bool selected;
+  final Color accent;
+  final Color inactiveColor;
   final VoidCallback onTap;
 
   const _NavItem({
-    Key? key,
     required this.icon,
+    required this.activeIcon,
     required this.label,
     required this.selected,
+    required this.accent,
+    required this.inactiveColor,
     required this.onTap,
-  }) : super(key: key);
-
-  @override
-  State<_NavItem> createState() => _NavItemState();
-}
-
-class _NavItemState extends State<_NavItem> {
-  bool _hover = false;
-  bool _pressed = false;
-
-  void _setHover(bool v) {
-    if (_hover == v) return;
-    setState(() => _hover = v);
-  }
-
-  void _setPressed(bool v) {
-    if (_pressed == v) return;
-    setState(() => _pressed = v);
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
-    final Color selectedBg = AppColors.primary;
-    final Color selectedIconColor = Colors.white;
-    final Color unselectedIconColor = Theme.of(context).iconTheme.color ?? AppColors.textSecondaryLight;
-
     return Expanded(
-      child: MouseRegion(
-        onEnter: (_) => _setHover(true),
-        onExit: (_) => _setHover(false),
-        cursor: SystemMouseCursors.click,
+      child: Semantics(
+        label: label,
+        selected: selected,
+        button: true,
         child: GestureDetector(
-          onTapDown: (_) => _setPressed(true),
-          onTapUp: (_) => _setPressed(false),
-          onTapCancel: () => _setPressed(false),
+          onTap: onTap,
           behavior: HitTestBehavior.translucent,
-          child: Semantics(
-            container: true,
-            label: widget.label,
-            selected: widget.selected,
-            child: AnimatedContainer(
-              duration: AppDimensions.duration,
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
-              margin: const EdgeInsets.symmetric(horizontal: 4.0),
-              transform: Matrix4.identity()
-                ..translate(0.0, _hover ? -4.0 : 0.0)
-                ..scale(_pressed ? 0.97 : (_hover ? 1.03 : 1.0)),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // circular icon background like Telegram (smaller)
-                  AnimatedContainer(
-                    duration: AppDimensions.duration,
-                    curve: Curves.easeOutCubic,
-                    width: widget.selected ? 40 : (_hover ? 36 : 34),
-                    height: widget.selected ? 40 : (_hover ? 36 : 34),
-                    decoration: BoxDecoration(
-                      color: widget.selected ? selectedBg : (_hover ? Theme.of(context).colorScheme.surface.withOpacity(0.04) : Colors.transparent),
-                      shape: BoxShape.circle,
-                      boxShadow: widget.selected
-                          ? [
-                              BoxShadow(
-                                color: selectedBg.withOpacity(0.12),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              )
-                            ]
-                          : (_hover
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  )
-                                ]
-                              : null),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        splashColor: Colors.white.withOpacity(0.12),
-                        highlightColor: Colors.white.withOpacity(0.06),
-                        onTap: widget.onTap,
-                        child: Center(
-                          child: Icon(
-                            widget.icon,
-                            size: widget.selected ? 20 : 18,
-                            color: widget.selected ? selectedIconColor : unselectedIconColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // small active indicator dot when selected (Telegram-like)
-                  AnimatedOpacity(
-                    duration: AppDimensions.duration,
-                    opacity: widget.selected ? 1.0 : 0.0,
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: widget.selected ? selectedBg : Colors.transparent,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                child: Icon(
+                  selected ? activeIcon : icon,
+                  key: ValueKey(selected),
+                  color: selected ? accent : inactiveColor,
+                  size: 24,
+                ),
               ),
-            ),
+              const SizedBox(height: 6),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 220),
+                opacity: selected ? 1.0 : 0.0,
+                child: Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
-
-/// FloatingActionButtonLocation that positions FAB above the bottom navigation bar
-/// on the right side with consistent spacing.
 class AboveBottomNavigationBar extends FloatingActionButtonLocation {
   const AboveBottomNavigationBar();
 

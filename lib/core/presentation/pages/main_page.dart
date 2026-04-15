@@ -4,6 +4,7 @@ import 'package:note_app/core/presentation/pages/archive_page/archive_page.dart'
 import 'package:note_app/core/presentation/pages/favorites_page/favorites_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
+import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:note_app/core/presentation/components/menu_navigation/menu_navigation.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
@@ -17,7 +18,7 @@ class NoteApp extends StatelessWidget {
     return MaterialApp(
       theme: AppTheme.lightThemeFor(helperProvider.primaryColor),
       darkTheme: AppTheme.darkThemeFor(helperProvider.primaryColor),
-      themeMode: helperProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: helperProvider.themeMode,
       home: const MainPage(),
     );
   }
@@ -46,6 +47,13 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  void _onFabTapped() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddNotePage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,6 +66,7 @@ class _MainPageState extends State<MainPage> {
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        onFabTapped: _onFabTapped,
       ),
     );
   }

@@ -3,12 +3,46 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HelperProvider extends ChangeNotifier {
-  bool _isDarkMode = false;
-  bool get isDarkMode => _isDarkMode;
+  // Three-state theme mode (system / light / dark)
+  static const _kThemeModeKey = 'theme_mode';
+  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode get themeMode => _themeMode;
+
+  // Backward-compat computed getter
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final s = mode == ThemeMode.light
+          ? 'light'
+          : mode == ThemeMode.dark
+              ? 'dark'
+              : 'system';
+      await prefs.setString(_kThemeModeKey, s);
+    } catch (_) {}
+  }
 
   void toggleTheme() {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
+    setThemeMode(_themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
+  }
+
+  Future<void> _loadThemeMode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final s = prefs.getString(_kThemeModeKey);
+      final mode = s == 'light'
+          ? ThemeMode.light
+          : s == 'dark'
+              ? ThemeMode.dark
+              : ThemeMode.system;
+      if (mode != _themeMode) {
+        _themeMode = mode;
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   // Custom primary color (persisted)
@@ -17,6 +51,7 @@ class HelperProvider extends ChangeNotifier {
   Color get primaryColor => Color(_primaryColorValue);
 
   HelperProvider() {
+    _loadThemeMode();
     _loadPrimaryColor();
   }
 
