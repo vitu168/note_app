@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/auth/welcome_page.dart';
+import 'package:note_app/core/theme/app_context_ext.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -109,20 +110,23 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+    final primary = context.primaryColor;
+    final isDark = context.isDark;
+    final bgTop = isDark ? Color.alphaBlend(primary.withValues(alpha: 0.12), const Color(0xFF1A1A1A)) : Color.alphaBlend(primary.withValues(alpha: 0.08), const Color(0xFFFFFCF0));
+    final bgMid = isDark ? Color.alphaBlend(primary.withValues(alpha: 0.08), const Color(0xFF111111)) : Color.alphaBlend(primary.withValues(alpha: 0.12), const Color(0xFFFFF8E1));
+    final bgBot = isDark ? Color.alphaBlend(primary.withValues(alpha: 0.15), const Color(0xFF0D0D0D)) : Color.alphaBlend(primary.withValues(alpha: 0.20), const Color(0xFFFFEE88));
+    final textColor = isDark ? Colors.white : Color.alphaBlend(primary.withValues(alpha: 0.85), const Color(0xFF3A1A00));
+    final subColor = textColor.withValues(alpha: 0.55);
 
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFF8E7),
-              Color(0xFFFFF3CC),
-              Color(0xFFFFE082),
-            ],
+            colors: [bgTop, bgMid, bgBot],
           ),
         ),
         child: SafeArea(
@@ -132,12 +136,12 @@ class _SplashPageState extends State<SplashPage>
               Positioned(
                 top: -size.height * 0.08,
                 right: -size.width * 0.15,
-                child: _Blob(size: size.width * 0.55, color: const Color(0xFFFFA000).withValues(alpha: 0.18)),
+                child: _Blob(size: size.width * 0.55, color: primary.withValues(alpha: 0.18)),
               ),
               Positioned(
                 bottom: -size.height * 0.06,
                 left: -size.width * 0.1,
-                child: _Blob(size: size.width * 0.45, color: const Color(0xFFFFB300).withValues(alpha: 0.15)),
+                child: _Blob(size: size.width * 0.45, color: primary.withValues(alpha: 0.15)),
               ),
 
               // ── Main content ──────────────────────────────────────────────
@@ -160,7 +164,7 @@ class _SplashPageState extends State<SplashPage>
                                 borderRadius: BorderRadius.circular(32),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFFFFA000).withValues(alpha: 0.40),
+                                    color: primary.withValues(alpha: 0.40),
                                     blurRadius: 40,
                                     spreadRadius: 4,
                                     offset: const Offset(0, 14),
@@ -192,7 +196,7 @@ class _SplashPageState extends State<SplashPage>
                           style: GoogleFonts.poppins(
                             fontSize: 34,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF5D3900),
+                            color: textColor,
                             letterSpacing: -0.5,
                             height: 1.1,
                           ),
@@ -210,7 +214,7 @@ class _SplashPageState extends State<SplashPage>
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: const Color(0xFF5D3900).withValues(alpha: 0.60),
+                          color: subColor,
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -287,6 +291,7 @@ class _LoadingDotsState extends State<_LoadingDots>
 
   @override
   Widget build(BuildContext context) {
+    final primary = context.primaryColor;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (i) {
@@ -304,7 +309,7 @@ class _LoadingDotsState extends State<_LoadingDots>
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFFA000).withValues(
+                color: primary.withValues(
                   alpha: 0.4 + bounce * 0.6,
                 ),
               ),

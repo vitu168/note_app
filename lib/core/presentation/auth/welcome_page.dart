@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/auth/login_page.dart';
+import 'package:note_app/core/theme/app_context_ext.dart';
 import '../pages/main_page.dart';
 
 class WelcomePage extends StatefulWidget {
@@ -158,12 +159,18 @@ class _WelcomePageState extends State<WelcomePage>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
+    final primary = context.primaryColor;
+    final isDark = context.isDark;
+    final scaffoldBg = isDark ? const Color(0xFF111111) : const Color(0xFFF9FAFB);
+    final titleColor = isDark ? Colors.white : const Color(0xFF111827);
+    final subtitleColor = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+    final guestBorderColor = isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+    final guestTextColor = isDark ? const Color(0xFFD1D5DB) : const Color(0xFF374151);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: scaffoldBg,
       body: Stack(
         children: [
-          // ── Wave hero background (purely decorative) ──────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -179,14 +186,14 @@ class _WelcomePageState extends State<WelcomePage>
                     clipper: _WaveClipper(),
                     child: Container(
                       height: screenHeight * 0.50,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Color(0xFFFFD54F),
-                            Color(0xFFFFA000),
-                            Color(0xFFFF8F00),
+                            Color.alphaBlend(primary.withValues(alpha: 0.6), isDark ? const Color(0xFF2A2A00) : const Color(0xFFFFEC40)),
+                            primary,
+                            Color.alphaBlend(const Color(0xFF000000).withValues(alpha: 0.15), primary),
                           ],
                         ),
                       ),
@@ -248,8 +255,7 @@ class _WelcomePageState extends State<WelcomePage>
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFFA000)
-                                      .withValues(alpha: 0.38),
+                                  color: primary.withValues(alpha: 0.38),
                                   blurRadius: 36,
                                   spreadRadius: 4,
                                   offset: const Offset(0, 14),
@@ -282,7 +288,7 @@ class _WelcomePageState extends State<WelcomePage>
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF111827),
+                          color: titleColor,
                           letterSpacing: -0.5,
                           height: 1.1,
                         ),
@@ -301,7 +307,7 @@ class _WelcomePageState extends State<WelcomePage>
                         'Capture ideas, organize tasks,\nand stay on top of everything.',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: const Color(0xFF6B7280),
+                          color: subtitleColor,
                           height: 1.6,
                         ),
                         textAlign: TextAlign.center,
@@ -333,7 +339,7 @@ class _WelcomePageState extends State<WelcomePage>
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            backgroundColor: const Color(0xFFFFA000),
+                            backgroundColor: primary,
                             foregroundColor: Colors.white,
                             elevation: 0,
                           ),
@@ -373,11 +379,11 @@ class _WelcomePageState extends State<WelcomePage>
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            side: const BorderSide(
-                              color: Color(0xFFE5E7EB),
+                            side: BorderSide(
+                              color: guestBorderColor,
                               width: 1.5,
                             ),
-                            foregroundColor: const Color(0xFF374151),
+                            foregroundColor: guestTextColor,
                           ),
                           onPressed: () {
                             Navigator.pushReplacement(
@@ -400,7 +406,7 @@ class _WelcomePageState extends State<WelcomePage>
                       '© 2025 Note App',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
-                        color: const Color(0xFFD1D5DB),
+                        color: subtitleColor.withValues(alpha: 0.5),
                       ),
                     ),
                   ),

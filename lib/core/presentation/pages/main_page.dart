@@ -44,8 +44,8 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  final List<Widget> _pages = [
-    const HomePage(),
+  late final List<Widget> _pages = [
+    HomePage(onSettingsPressed: () => _onItemTapped(2)),
     const ChatPage(),
     const SettingsPage(),
   ];

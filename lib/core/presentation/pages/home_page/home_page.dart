@@ -15,7 +15,8 @@ import 'package:note_app/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.onSettingsPressed});
+  final VoidCallback? onSettingsPressed;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -266,27 +267,33 @@ class _HomePageState extends State<HomePage> {
 
     return Row(
       children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: t.primaryMuted,
-          ),
-          child: ClipOval(
-            child: avatarUrl.isNotEmpty
-                ? Image.network(
-                    avatarUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _avatarFallback(initial, t),
-                    loadingBuilder: (_, child, progress) =>
-                        progress == null ? child : _avatarFallback(initial, t),
-                  )
-                : _avatarFallback(initial, t),
+        Material(
+          color: t.primaryMuted,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: widget.onSettingsPressed,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: avatarUrl.isNotEmpty
+                    ? Image.network(
+                        avatarUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _avatarFallback(initial, t),
+                        loadingBuilder: (_, child, progress) =>
+                            progress == null ? child : _avatarFallback(initial, t),
+                      )
+                    : _avatarFallback(initial, t),
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 12),
-        // Greeting + name
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,23 +309,13 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: t.surface,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      _greetingSticker(),
-                      style: const TextStyle(fontSize: 12),
-                    ),
+                  Text(
+                    _greetingSticker(),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 userName,
                 style: GoogleFonts.poppins(
