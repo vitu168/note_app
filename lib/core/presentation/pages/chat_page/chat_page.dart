@@ -9,6 +9,39 @@ import 'package:note_app/core/presentation/widgets/skeleton/user_tile_skeleton.d
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:note_app/core/presentation/pages/chat_page/chat_detail_page.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mock conversation metadata (UI preview only — replace with real data later)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ConvMeta {
+  const _ConvMeta({
+    required this.lastMessage,
+    required this.time,
+    this.unread = 0,
+    this.isOnline = false,
+    this.isMine = false,
+  });
+  final String lastMessage;
+  final String time;
+  final int unread;
+  final bool isOnline;
+  final bool isMine;
+}
+
+const _mockConvs = [
+  _ConvMeta(lastMessage: 'Hey! How are you doing?', time: '9:10 AM', unread: 2, isOnline: true),
+  _ConvMeta(lastMessage: 'Sent you a screenshot of the chat UI', time: 'Yesterday', unread: 0, isMine: true, isOnline: false),
+  _ConvMeta(lastMessage: 'Let me know when you are free', time: 'Mon', unread: 5, isOnline: true),
+  _ConvMeta(lastMessage: 'Thanks a lot for your help!', time: 'Sun', unread: 0, isOnline: false),
+  _ConvMeta(lastMessage: 'The new build looks amazing', time: 'Sat', unread: 0, isMine: true, isOnline: true),
+];
+
+_ConvMeta _metaFor(int index) => _mockConvs[index % _mockConvs.length];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
+
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
 
@@ -48,7 +81,7 @@ class _ChatPageState extends State<ChatPage> {
         body: SafeArea(
           child: Column(
             children: [
-              _Header(t: t, l10n: l10n, profile: profile),
+              _Header(profile: profile, t: t),
               _SearchBar(
                 controller: _searchController,
                 t: t,
@@ -60,25 +93,30 @@ class _ChatPageState extends State<ChatPage> {
                     ? const UserListSkeleton()
                     : () {
                         final displayUsers = provider.users
-                            .where((user) => user.id != profile?.id)
+                            .where((u) => u.id != profile?.id)
                             .toList();
-                        return displayUsers.isEmpty
-                            ? _EmptyState(t: t, l10n: l10n)
-                            : RefreshIndicator(
-                                color: t.primary,
-                                onRefresh: () => context.read<ChatPageProvider>().refresh(),
-                                child: ListView.builder(
-                                  padding: const EdgeInsets.only(top: 8, bottom: 100),
-                                  itemCount: displayUsers.length,
-                                  itemBuilder: (context, index) {
-                                    return _UserTile(
-                                      user: displayUsers[index],
-                                      t: t,
-                                      isLast: index == displayUsers.length - 1,
-                                    );
-                                  },
-                                ),
+                        if (displayUsers.isEmpty) {
+                          return _EmptyState(t: t, l10n: l10n);
+                        }
+                        return RefreshIndicator(
+                          color: t.primary,
+                          onRefresh: () =>
+                              context.read<ChatPageProvider>().refresh(),
+                          child: ListView.builder(
+                            padding:
+                                const EdgeInsets.only(top: 4, bottom: 100),
+                            itemCount: displayUsers.length,
+                            itemBuilder: (context, index) {
+                              final user = displayUsers[index];
+                              final meta = _metaFor(index);
+                              return _ConvTile(
+                                user: user,
+                                meta: meta,
+                                t: t,
                               );
+                            },
+                          ),
+                        );
                       }(),
               ),
             ],
@@ -89,61 +127,50 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
-// ── Header ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Header
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
-  const _Header({
-    required this.t,
-    required this.l10n,
-    this.profile,
-  });
-
-  final dynamic t;
-  final AppLocalizations l10n;
+  const _Header({required this.profile, required this.t});
   final UserProfile? profile;
+  final dynamic t;
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
     final avatarUrl = profile?.avatarUrl ?? '';
     final name = profile?.name ?? '';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+      padding: const EdgeInsets.fromLTRB(20, 16, 16, 4),
       child: Row(
         children: [
+          // Avatar (own profile)
+          _AvatarWidget(avatarUrl: avatarUrl, initial: initial, size: 38, t: theme),
+          const SizedBox(width: 12),
           Text(
-            l10n.chatTitle,
+            'Messages',
             style: GoogleFonts.poppins(
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: context.appTheme.titleText,
+              color: theme.titleText,
               height: 1.2,
             ),
           ),
           const Spacer(),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: context.appTheme.surface,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: avatarUrl.isNotEmpty
-                  ? Image.network(
-                      avatarUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _HeaderInitial(initial: initial, t: t),
-                    )
-                  : _HeaderInitial(initial: initial, t: t),
+          // Compose button
+          Material(
+            color: theme.primaryMuted,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {},
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(Icons.edit_rounded, size: 20, color: theme.primary),
+              ),
             ),
           ),
         ],
@@ -152,29 +179,9 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _HeaderInitial extends StatelessWidget {
-  const _HeaderInitial({required this.initial, required this.t});
-  final String initial;
-  final dynamic t;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: t.surface,
-      alignment: Alignment.center,
-      child: Text(
-        initial,
-        style: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: t.primary,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Search bar ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Search bar
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
@@ -183,7 +190,6 @@ class _SearchBar extends StatelessWidget {
     required this.hint,
     required this.onChanged,
   });
-
   final TextEditingController controller;
   final dynamic t;
   final String hint;
@@ -193,20 +199,11 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.appTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.surface,
+          color: theme.surfaceHighest,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: context.isDark
-              ? null
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
         ),
         child: TextField(
           controller: controller,
@@ -214,18 +211,13 @@ class _SearchBar extends StatelessWidget {
           style: GoogleFonts.poppins(fontSize: 14, color: theme.bodyText),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.poppins(
-              color: theme.hintText,
-              fontSize: 14,
-            ),
-            prefixIcon: Icon(
-              Icons.search_rounded,
-              color: theme.hintText,
-              size: 20,
-            ),
+            hintStyle:
+                GoogleFonts.poppins(color: theme.hintText, fontSize: 14),
+            prefixIcon:
+                Icon(Icons.search_rounded, color: theme.hintText, size: 20),
             border: InputBorder.none,
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ),
@@ -233,123 +225,223 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-// ── User tile ────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Conversation tile — Messenger / Telegram style
+// ─────────────────────────────────────────────────────────────────────────────
 
-class _UserTile extends StatelessWidget {
-  const _UserTile({
+class _ConvTile extends StatelessWidget {
+  const _ConvTile({
     required this.user,
+    required this.meta,
     required this.t,
-    required this.isLast,
   });
-
   final UserProfile user;
+  final _ConvMeta meta;
   final dynamic t;
-  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
-    final name = user.name ?? 'Unknown';
-    final email = user.email ?? '';
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final name = user.name ?? 'User';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
     final avatarUrl = user.avatarUrl ?? '';
+    final hasUnread = meta.unread > 0;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      decoration: BoxDecoration(
-        color: theme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ChatDetailPage(otherUser: user)),
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChatDetailPage(otherUser: user),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            // ── Avatar with online dot ──────────────────────────────────────
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                // Avatar
-                _Avatar(
+                _AvatarWidget(
                   avatarUrl: avatarUrl,
                   initial: initial,
-                  theme: theme,
+                  size: 54,
+                  t: theme,
                 ),
-                const SizedBox(width: 14),
-
-                // Name + email
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600,
-                          color: theme.titleText,
-                          height: 1.3,
-                        ),
+                if (meta.isOnline)
+                  Positioned(
+                    right: 1,
+                    bottom: 1,
+                    child: Container(
+                      width: 13,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: theme.success,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: theme.surfaceElevated, width: 2),
                       ),
-                      if (email.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          email,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 14),
+
+            // ── Name + last message ─────────────────────────────────────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name row + time
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            color: theme.hintText,
+                            fontSize: 15,
+                            fontWeight: hasUnread
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            color: theme.titleText,
                             height: 1.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        meta.time,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5,
+                          color: hasUnread ? theme.primary : theme.hintText,
+                          fontWeight: hasUnread
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+
+                  // Last message row + unread badge
+                  Row(
+                    children: [
+                      // Sent tick for own messages
+                      if (meta.isMine) ...[
+                        Icon(
+                          Icons.done_all_rounded,
+                          size: 14,
+                          color: theme.primary,
+                        ),
+                        const SizedBox(width: 3),
+                      ],
+                      Expanded(
+                        child: Text(
+                          meta.lastMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: hasUnread
+                                ? theme.bodyText
+                                : theme.hintText,
+                            fontWeight: hasUnread
+                                ? FontWeight.w500
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      if (hasUnread) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: theme.primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            meta.unread > 99
+                                ? '99+'
+                                : '${meta.unread}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: theme.onPrimary,
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
-                ),
-
-                // Note badge
-                if (user.isNote == true)
-                  Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: theme.primaryMuted,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Note',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: theme.primary,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: theme.hintText.withValues(alpha: 0.5),
-                  size: 20,
-                ),
-              ],
+                ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared avatar widget
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AvatarWidget extends StatelessWidget {
+  const _AvatarWidget({
+    required this.avatarUrl,
+    required this.initial,
+    required this.size,
+    required this.t,
+  });
+  final String avatarUrl;
+  final String initial;
+  final double size;
+  final dynamic t;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    if (avatarUrl.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          avatarUrl,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _fallback(theme, size),
+          loadingBuilder: (_, child, progress) {
+            if (progress == null) return child;
+            return _fallback(theme, size);
+          },
+        ),
+      );
+    }
+    return _fallback(theme, size);
+  }
+
+  Widget _fallback(dynamic theme, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            theme.primary.withValues(alpha: 0.7),
+            theme.primary,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: GoogleFonts.poppins(
+            fontSize: size * 0.38,
+            fontWeight: FontWeight.w700,
+            color: theme.onPrimary,
           ),
         ),
       ),
@@ -357,81 +449,9 @@ class _UserTile extends StatelessWidget {
   }
 }
 
-// ── Avatar ───────────────────────────────────────────────────────────────────
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({
-    required this.avatarUrl,
-    required this.initial,
-    required this.theme,
-  });
-
-  final String avatarUrl;
-  final String initial;
-  final dynamic theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.appTheme;
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: avatarUrl.isEmpty ? t.primaryMuted : Colors.transparent,
-        border: Border.all(
-          color: t.divider.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-      ),
-      child: ClipOval(
-        child: avatarUrl.isNotEmpty
-            ? Image.network(
-                avatarUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _Initials(initial: initial, t: t),
-                loadingBuilder: (_, child, progress) {
-                  if (progress == null) return child;
-                  return Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        color: t.primary,
-                      ),
-                    ),
-                  );
-                },
-              )
-            : _Initials(initial: initial, t: t),
-      ),
-    );
-  }
-}
-
-class _Initials extends StatelessWidget {
-  const _Initials({required this.initial, required this.t});
-  final String initial;
-  final dynamic t;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.appTheme;
-    return Center(
-      child: Text(
-        initial,
-        style: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: theme.primary,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty state
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.t, required this.l10n});
@@ -452,19 +472,13 @@ class _EmptyState extends StatelessWidget {
               color: theme.primaryMuted,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.people_outline_rounded,
-              size: 34,
-              color: theme.primary,
-            ),
+            child: Icon(Icons.chat_bubble_outline_rounded,
+                size: 32, color: theme.primary),
           ),
           const SizedBox(height: 16),
           Text(
             l10n.chatNoUsers,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: theme.hintText,
-            ),
+            style: GoogleFonts.poppins(fontSize: 14, color: theme.hintText),
           ),
         ],
       ),
