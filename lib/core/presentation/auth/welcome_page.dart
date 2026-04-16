@@ -247,31 +247,9 @@ class _WelcomePageState extends State<WelcomePage>
                         opacity: _logoOpacity,
                         child: SlideTransition(
                           position: _logoSlide,
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: primary.withValues(alpha: 0.38),
-                                  blurRadius: 36,
-                                  spreadRadius: 4,
-                                  offset: const Offset(0, 14),
-                                ),
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.06),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Image.asset(
-                              'assets/app_logo.png',
-                              fit: BoxFit.contain,
-                            ),
+                          child: Image.asset(
+                            'assets/app_logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),

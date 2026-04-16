@@ -7,6 +7,7 @@ import 'package:note_app/core/models/user_profile.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:note_app/core/presentation/widgets/skeleton/user_tile_skeleton.dart';
 import 'package:note_app/l10n/app_localizations.dart';
+import 'package:note_app/core/presentation/pages/chat_page/chat_detail_page.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -271,7 +272,12 @@ class _UserTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {},
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatDetailPage(otherUser: user),
+            ),
+          ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
