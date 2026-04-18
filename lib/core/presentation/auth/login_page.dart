@@ -7,6 +7,7 @@ import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/core/presentation/components/form_text_input.dart';
 import 'package:note_app/core/presentation/auth/signup_page.dart';
 import 'package:note_app/core/data/supabase/auth_service.dart';
+import 'package:note_app/core/services/user_profile_api_service.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
 
@@ -234,6 +235,12 @@ class _LoginPageState extends State<LoginPage> {
                               ? (meta['name'] ?? meta['full_name'] ?? meta['preferred_username'] ?? meta['display_name'])?.toString()
                               : null;
                           final name = displayName ?? user.email?.split('@').first ?? 'there';
+
+                          await UserProfileApiService().ensureProfile(
+                            id: user.id,
+                            email: user.email ?? '',
+                            name: displayName,
+                          );
 
                           Navigator.pushReplacement(
                             context,

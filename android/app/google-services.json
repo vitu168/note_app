@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "872122524548",
+    "project_id": "noteapp-2c062",
+    "storage_bucket": "noteapp-2c062.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:872122524548:android:17af46fee76e7bcf2eb3d1",
+        "android_client_info": {
+          "package_name": "com.langvitu.noteApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWbkRm8r82El7jexgLQgYZqzq6rFX0Ly8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

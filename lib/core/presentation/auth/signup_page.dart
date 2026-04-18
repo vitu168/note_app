@@ -5,6 +5,7 @@ import 'package:note_app/core/constants/font_constant.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/core/presentation/components/form_text_input.dart';
 import 'package:note_app/core/data/supabase/auth_service.dart';
+import 'package:note_app/core/services/user_profile_api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/config/supabase_config.dart';
@@ -178,6 +179,11 @@ class _SignUpPageState extends State<SignUpPage> {
                         Navigator.pop(context);
                         final user = AuthService.currentUser();
                         if (user != null) {
+                          await UserProfileApiService().ensureProfile(
+                            id: user.id,
+                            email: user.email ?? email,
+                            name: _nameController.text.trim(),
+                          );
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => const MainPage()),
