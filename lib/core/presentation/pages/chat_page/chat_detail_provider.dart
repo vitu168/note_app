@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:note_app/core/models/chat_messenger_message.dart';
 import 'package:note_app/core/models/message_type.dart';
@@ -22,7 +21,6 @@ class ChatDetailProvider extends ChangeNotifier {
   bool _loading = true;
   bool _sending = false;
   String? _lastError;
-  Timer? _pollTimer;
   bool _disposed = false; // Flag to prevent notifyListeners after dispose
 
   // Last message ID received from the other user — used to detect truly new messages
@@ -58,7 +56,6 @@ class ChatDetailProvider extends ChangeNotifier {
 
     try {
       await _fetchMessages();
-      if (!_disposed) _startPolling();
     } catch (e) {
       if (!_disposed) {
         _lastError = e.toString();
@@ -72,21 +69,9 @@ class ChatDetailProvider extends ChangeNotifier {
     }
   }
 
-  void _startPolling() {
-    if (_disposed) return;
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
-      if (!_disposed) {
-        try {
-          await _fetchMessages(silent: true);
-        } catch (_) {}
-      }
-    });
-  }
-
   // ── Core fetch ─────────────────────────────────────────────────────────────
 
-  Future<void> _fetchMessages({bool silent = false}) async {
+  Future<void> _fetchMessages() async {
     if (_disposed) return;
 
     // Single API call — backend returns the full conversation when both IDs are provided
@@ -131,17 +116,8 @@ class ChatDetailProvider extends ChangeNotifier {
       _lastSeenOtherMsgId = -1; // sentinel: no messages exist yet
     }
 
-    // Only rebuild if the message list actually changed (compare last ID + count)
-    final prevLastId = _messages.isNotEmpty ? _messages.last.id : -1;
-    final newLastId = combined.isNotEmpty ? combined.last.id : -1;
-    final changed =
-        combined.length != _messages.length || newLastId != prevLastId;
-
     _messages = combined;
-
-    if (!silent || changed) {
-      if (!_disposed) notifyListeners();
-    }
+    if (!_disposed) notifyListeners();
   }
 
   void _markReceivedRead(List<ChatMessengerMessage> unread) {
@@ -155,6 +131,15 @@ class ChatDetailProvider extends ChangeNotifier {
             messageType: 'TextChat',
             isRead: true,
           )
+          .then((_) {
+            if (!_disposed) {
+              final idx = _messages.indexWhere((m) => m.id == msg.id);
+              if (idx >= 0) {
+                _messages[idx] = _messages[idx].copyWith(isRead: true);
+                notifyListeners();
+              }
+            }
+          })
           .ignore();
     }
   }
@@ -283,7 +268,6 @@ class ChatDetailProvider extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    _pollTimer?.cancel();
     if (ChatNotificationService.instance.activeChatUserId == otherUser.id) {
       ChatNotificationService.instance.activeChatUserId = null;
     }

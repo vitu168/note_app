@@ -265,12 +265,19 @@ class _ConvTile extends StatelessWidget {
     final timeStr = _formatPreviewTime(preview?.lastMessageTime);
     final hasUnread = (preview?.unreadCount ?? 0) > 0;
     final isMine = preview?.isLastMessageMine ?? false;
+    final isRead = preview?.isLastMessageRead ?? false;
 
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ChatDetailPage(otherUser: user, currentUserId: currentUserId)),
-      ),
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ChatDetailPage(otherUser: user, currentUserId: currentUserId)),
+        );
+        // Refresh previews after returning so the list shows the latest message
+        if (context.mounted) {
+          context.read<ChatPageProvider>().refresh(currentUserId: currentUserId);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
@@ -324,12 +331,14 @@ class _ConvTile extends StatelessWidget {
                   // Last message row + unread badge
                   Row(
                     children: [
-                      // Sent tick for own messages
+                      // Sent tick for own messages only (show read/unread status)
                       if (isMine) ...[
                         Icon(
-                          Icons.done_all_rounded,
+                          isRead
+                              ? Icons.done_all_rounded  // Double checkmark if they read it
+                              : Icons.check_rounded,    // Single checkmark if not read
                           size: 14,
-                          color: theme.primary,
+                          color: isRead ? theme.primary : theme.hintText,
                         ),
                         const SizedBox(width: 3),
                       ],

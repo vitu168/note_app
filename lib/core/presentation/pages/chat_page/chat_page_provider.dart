@@ -11,6 +11,7 @@ class ConversationPreview {
     this.lastMessage,
     this.lastMessageTime,
     this.isLastMessageMine = false,
+    this.isLastMessageRead = false,
     this.unreadCount = 0,
   });
 
@@ -18,6 +19,7 @@ class ConversationPreview {
   final String? lastMessage;
   final DateTime? lastMessageTime;
   final bool isLastMessageMine;
+  final bool isLastMessageRead; // If mine: did they read it? If theirs: did I read it?
   final int unreadCount;
 }
 
@@ -63,31 +65,38 @@ class ChatPageProvider extends ChangeNotifier {
 
   Future<void> _loadPreviews(String currentUserId) async {
     try {
-      // Fetch all messages sent BY current user (gives last-message preview)
-      final result = await _chatApi.getMessages(
-        senderId: currentUserId,
-        pageSize: 200,
-      );
+      // Fetch messages I sent AND messages I received in parallel
+      final results = await Future.wait([
+        _chatApi.getMessages(senderId: currentUserId, pageSize: 200),
+        _chatApi.getMessages(receiverId: currentUserId, pageSize: 200),
+      ]);
 
-      // Group by receiverId → take the most recent message per conversation
-      final Map<String, ChatMessengerMessage> latestByReceiver = {};
-      for (final msg in result.items) {
-        final existing = latestByReceiver[msg.receiverId];
-        if (existing == null ||
-            msg.createdAt.isAfter(existing.createdAt)) {
-          latestByReceiver[msg.receiverId] = msg;
+      // Combine both lists into a single flat list
+      final allMessages = [...results[0].items, ...results[1].items];
+
+      // Group by the "other user" ID → take the most recent message per conversation
+      final Map<String, ChatMessengerMessage> latestByOtherUser = {};
+      for (final msg in allMessages) {
+        // The other user is whoever isn't me
+        final otherUserId = msg.senderId == currentUserId
+            ? msg.receiverId
+            : msg.senderId;
+        final existing = latestByOtherUser[otherUserId];
+        if (existing == null || msg.createdAt.isAfter(existing.createdAt)) {
+          latestByOtherUser[otherUserId] = msg;
         }
       }
 
       // Build preview map
       final previews = <String, ConversationPreview>{};
       for (final user in _allUsers) {
-        final lastSent = latestByReceiver[user.id];
+        final lastMsg = latestByOtherUser[user.id];
         previews[user.id] = ConversationPreview(
           user: user,
-          lastMessage: lastSent?.content,
-          lastMessageTime: lastSent?.createdAt,
-          isLastMessageMine: lastSent != null,
+          lastMessage: lastMsg?.content,
+          lastMessageTime: lastMsg?.createdAt,
+          isLastMessageMine: lastMsg?.senderId == currentUserId,
+          isLastMessageRead: lastMsg?.isRead ?? false,
           unreadCount: 0,
         );
       }
