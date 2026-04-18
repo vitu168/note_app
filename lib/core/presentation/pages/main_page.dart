@@ -1,5 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/presentation/pages/chat_page/chat_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
@@ -42,7 +44,16 @@ class _MainPageState extends State<MainPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProfileProvider>().syncOnLogin();
       context.read<HomePageProvider>().loadNotes();
+      _refreshFcmToken();
     });
+  }
+
+  /// Refresh FCM token on every app open so userdevices stays up to date.
+  Future<void> _refreshFcmToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) await CustomAuthService.saveFcmToken(token);
+    } catch (_) {}
   }
 
   late final List<Widget> _pages = [

@@ -1,3 +1,5 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:note_app/core/services/api_service.dart';
 import 'package:note_app/core/models/auth_response.dart';
@@ -41,6 +43,7 @@ class CustomAuthService {
   static Future<AuthResponse> signIn({
     required String email,
     required String password,
+    String? fcmToken,
   }) async {
     try {
       final response = await _apiService.post(
@@ -48,6 +51,7 @@ class CustomAuthService {
         data: {
           'email': email,
           'password': password,
+          if (fcmToken != null) 'fcmToken': fcmToken,
         },
       );
       
@@ -90,6 +94,20 @@ class CustomAuthService {
   static Future<void> signOut() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString(_userIdKey);
+      if (userId != null && userId.isNotEmpty) {
+        try {
+          await _apiService.delete('/api/device/$userId');
+        } catch (_) {}
+      }
+
+      // Invalidate the local FCM token (mobile only)
+      if (!kIsWeb) {
+        try {
+          await FirebaseMessaging.instance.deleteToken();
+        } catch (_) {}
+      }
+
       await prefs.remove(_tokenKey);
       await prefs.remove(_refreshTokenKey);
       await prefs.remove(_userIdKey);
@@ -149,5 +167,16 @@ class CustomAuthService {
       '/api/auth/forgot-password',
       data: {'email': email},
     );
+  }
+
+  /// Save or refresh the FCM token for the current user device.
+  /// Silently swallows errors — notifications are non-critical.
+  static Future<void> saveFcmToken(String fcmToken) async {
+    try {
+      await _apiService.post(
+        '/api/device/save-token',
+        data: {'fcmToken': fcmToken},
+      );
+    } catch (_) {}
   }
 }

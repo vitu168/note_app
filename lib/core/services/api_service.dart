@@ -56,10 +56,20 @@ class ApiService {
     final statusCode = error.response?.statusCode;
     final responseData = error.response?.data;
 
+    // Extract the most descriptive message from the response body
+    String _extractMessage(dynamic data) {
+      if (data == null) return '';
+      if (data is String) return data;
+      if (data is Map) {
+        return (data['error'] ?? data['message'] ?? data['title'] ?? '').toString();
+      }
+      return data.toString();
+    }
+
     switch (statusCode) {
       case 400:
-        throw Exception(
-            'Bad request: ${responseData?['message'] ?? 'Invalid request'}');
+        final msg = _extractMessage(responseData);
+        throw Exception('Bad request: ${msg.isNotEmpty ? msg : 'Invalid request'}');
       case 401:
         throw Exception('Unauthorized: Please check your credentials');
       case 403:
@@ -68,13 +78,15 @@ class ApiService {
       case 404:
         throw Exception('Not found: The requested resource was not found');
       case 422:
-        throw Exception(
-            'Validation error: ${responseData?['message'] ?? 'Invalid data'}');
+        final msg = _extractMessage(responseData);
+        throw Exception('Validation error: ${msg.isNotEmpty ? msg : 'Invalid data'}');
       case 500:
-        throw Exception('Server error: Please try again later');
+        final msg = _extractMessage(responseData);
+        throw Exception('Server error (500)${msg.isNotEmpty ? ': $msg' : ': Internal server error — check backend logs'}');
       default:
+        final msg = _extractMessage(responseData);
         throw Exception(
-            'HTTP $statusCode error: ${responseData?['message'] ?? 'Unknown error'}');
+            'HTTP $statusCode error: ${msg.isNotEmpty ? msg : 'Unknown error'}');
     }
   }
 

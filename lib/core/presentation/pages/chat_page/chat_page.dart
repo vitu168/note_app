@@ -9,34 +9,26 @@ import 'package:note_app/core/presentation/widgets/skeleton/user_tile_skeleton.d
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:note_app/core/presentation/pages/chat_page/chat_detail_page.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Mock conversation metadata (UI preview only — replace with real data later)
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ConvMeta {
-  const _ConvMeta({
-    required this.lastMessage,
-    required this.time,
-    this.unread = 0,
-    this.isOnline = false,
-    this.isMine = false,
-  });
-  final String lastMessage;
-  final String time;
-  final int unread;
-  final bool isOnline;
-  final bool isMine;
+/// Format a [DateTime] into a compact chat-list time string.
+String _formatPreviewTime(DateTime? dt) {
+  if (dt == null) return '';
+  final now = DateTime.now();
+  final local = dt.toLocal();
+  final today = DateTime(now.year, now.month, now.day);
+  final msgDay = DateTime(local.year, local.month, local.day);
+  final diff = today.difference(msgDay).inDays;
+  if (diff == 0) {
+    final h = local.hour;
+    final m = local.minute.toString().padLeft(2, '0');
+    final period = h >= 12 ? 'PM' : 'AM';
+    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+    return '$h12:$m $period';
+  }
+  if (diff == 1) return 'Yesterday';
+  const weekdays = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  if (diff < 7) return weekdays[local.weekday];
+  return '${local.month}/${local.day}';
 }
-
-const _mockConvs = [
-  _ConvMeta(lastMessage: 'Hey! How are you doing?', time: '9:10 AM', unread: 2, isOnline: true),
-  _ConvMeta(lastMessage: 'Sent you a screenshot of the chat UI', time: 'Yesterday', unread: 0, isMine: true, isOnline: false),
-  _ConvMeta(lastMessage: 'Let me know when you are free', time: 'Mon', unread: 5, isOnline: true),
-  _ConvMeta(lastMessage: 'Thanks a lot for your help!', time: 'Sun', unread: 0, isOnline: false),
-  _ConvMeta(lastMessage: 'The new build looks amazing', time: 'Sat', unread: 0, isMine: true, isOnline: true),
-];
-
-_ConvMeta _metaFor(int index) => _mockConvs[index % _mockConvs.length];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
@@ -56,7 +48,9 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatPageProvider>().loadUsers();
+      final provider = context.read<ChatPageProvider>();
+      final profile = context.read<UserProfileProvider>().profile;
+      provider.loadUsers(currentUserId: profile?.id);
     });
   }
 
@@ -81,7 +75,7 @@ class _ChatPageState extends State<ChatPage> {
         body: SafeArea(
           child: Column(
             children: [
-              _Header(profile: profile, t: t),
+              _Header(profile: profile, t: t, unreadCount: provider.unreadCount),
               _SearchBar(
                 controller: _searchController,
                 t: t,
@@ -100,19 +94,20 @@ class _ChatPageState extends State<ChatPage> {
                         }
                         return RefreshIndicator(
                           color: t.primary,
-                          onRefresh: () =>
-                              context.read<ChatPageProvider>().refresh(),
+                          onRefresh: () => context
+                              .read<ChatPageProvider>()
+                              .refresh(currentUserId: profile?.id),
                           child: ListView.builder(
                             padding:
                                 const EdgeInsets.only(top: 4, bottom: 100),
                             itemCount: displayUsers.length,
                             itemBuilder: (context, index) {
                               final user = displayUsers[index];
-                              final meta = _metaFor(index);
                               return _ConvTile(
                                 user: user,
-                                meta: meta,
+                                preview: provider.previewFor(user.id),
                                 t: t,
+                                currentUserId: profile?.id ?? '',
                               );
                             },
                           ),
@@ -132,9 +127,10 @@ class _ChatPageState extends State<ChatPage> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
-  const _Header({required this.profile, required this.t});
+  const _Header({required this.profile, required this.t, required this.unreadCount});
   final UserProfile? profile;
   final dynamic t;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +155,24 @@ class _Header extends StatelessWidget {
               height: 1.2,
             ),
           ),
+          if (unreadCount > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: theme.primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                unreadCount > 99 ? '99+' : '$unreadCount',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
           const Spacer(),
           // Compose button
           Material(
@@ -232,12 +246,14 @@ class _SearchBar extends StatelessWidget {
 class _ConvTile extends StatelessWidget {
   const _ConvTile({
     required this.user,
-    required this.meta,
+    required this.preview,
     required this.t,
+    required this.currentUserId,
   });
   final UserProfile user;
-  final _ConvMeta meta;
+  final ConversationPreview? preview;
   final dynamic t;
+  final String currentUserId;
 
   @override
   Widget build(BuildContext context) {
@@ -245,42 +261,26 @@ class _ConvTile extends StatelessWidget {
     final name = user.name ?? 'User';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
     final avatarUrl = user.avatarUrl ?? '';
-    final hasUnread = meta.unread > 0;
+    final lastMsg = preview?.lastMessage;
+    final timeStr = _formatPreviewTime(preview?.lastMessageTime);
+    final hasUnread = (preview?.unreadCount ?? 0) > 0;
+    final isMine = preview?.isLastMessageMine ?? false;
 
     return InkWell(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => ChatDetailPage(otherUser: user)),
+        MaterialPageRoute(builder: (_) => ChatDetailPage(otherUser: user, currentUserId: currentUserId)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // ── Avatar with online dot ──────────────────────────────────────
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _AvatarWidget(
-                  avatarUrl: avatarUrl,
-                  initial: initial,
-                  size: 54,
-                  t: theme,
-                ),
-                if (meta.isOnline)
-                  Positioned(
-                    right: 1,
-                    bottom: 1,
-                    child: Container(
-                      width: 13,
-                      height: 13,
-                      decoration: BoxDecoration(
-                        color: theme.success,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: theme.surfaceElevated, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
+            // ── Avatar ─────────────────────────────────────────────────────
+            _AvatarWidget(
+              avatarUrl: avatarUrl,
+              initial: initial,
+              size: 54,
+              t: theme,
             ),
             const SizedBox(width: 14),
 
@@ -309,13 +309,12 @@ class _ConvTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        meta.time,
+                        timeStr,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
                           color: hasUnread ? theme.primary : theme.hintText,
-                          fontWeight: hasUnread
-                              ? FontWeight.w600
-                              : FontWeight.w400,
+                            fontWeight:
+                                hasUnread ? FontWeight.w600 : FontWeight.w400,
                         ),
                       ),
                     ],
@@ -326,7 +325,7 @@ class _ConvTile extends StatelessWidget {
                   Row(
                     children: [
                       // Sent tick for own messages
-                      if (meta.isMine) ...[
+                      if (isMine) ...[
                         Icon(
                           Icons.done_all_rounded,
                           size: 14,
@@ -336,7 +335,7 @@ class _ConvTile extends StatelessWidget {
                       ],
                       Expanded(
                         child: Text(
-                          meta.lastMessage,
+                          lastMsg ?? 'Tap to start chatting',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
@@ -360,9 +359,9 @@ class _ConvTile extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            meta.unread > 99
+                            (preview?.unreadCount ?? 0) > 99
                                 ? '99+'
-                                : '${meta.unread}',
+                                : '${preview?.unreadCount ?? 0}',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,

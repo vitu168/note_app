@@ -1,193 +1,292 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:note_app/core/models/chat_message.dart';
+import 'package:note_app/core/models/chat_messenger_message.dart';
+import 'package:note_app/core/models/message_type.dart';
 import 'package:note_app/core/models/user_profile.dart';
-import 'package:note_app/core/services/chat_service.dart';
-import 'package:note_app/core/data/supabase/auth_service.dart';
+import 'package:note_app/core/services/chat_messenger_api_service.dart';
+import 'package:note_app/core/services/chat_notification_service.dart';
 
 class ChatDetailProvider extends ChangeNotifier {
-  final UserProfile otherUser;
-  ChatDetailProvider({required this.otherUser});
+  ChatDetailProvider({required this.otherUser, required this.currentUserId});
 
-  List<ChatMessage> _messages = [];
+  final UserProfile otherUser;
+  final String currentUserId;
+
+  final ChatMessengerApiService _api = ChatMessengerApiService();
+
+  List<ChatMessengerMessage> _messages = [];
+  // Optimistic (in-flight) message shown immediately after tapping send
+  String? _optimisticContent;
+  bool _optimisticFailed = false;
+
   bool _loading = true;
   bool _sending = false;
-  bool _hasMore = true;
-  String? _conversationId;
-  RealtimeChannel? _channel;
+  String? _lastError;
+  Timer? _pollTimer;
+  bool _disposed = false; // Flag to prevent notifyListeners after dispose
 
-  String? _replyTo; // message id being replied to
-  String? _replyToText;
-  String? _replyToSenderName;
+  // Last message ID received from the other user — used to detect truly new messages
+  int _lastSeenOtherMsgId = 0;
 
-  List<ChatMessage> get messages => _messages;
+  List<ChatMessengerMessage> get messages => _messages;
   bool get loading => _loading;
   bool get sending => _sending;
-  bool get hasMore => _hasMore;
-  String? get conversationId => _conversationId;
-  String? get replyTo => _replyTo;
-  String? get replyToText => _replyToText;
-  String? get replyToSenderName => _replyToSenderName;
+  String? get error => _lastError;
+  String? get optimisticContent => _optimisticContent;
+  bool get optimisticFailed => _optimisticFailed;
 
-  String get currentUserId => AuthService.currentUser()?.id ?? '';
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
 
   Future<void> init() async {
+    if (_disposed) return;
     _loading = true;
-    notifyListeners();
-    try {
-      _conversationId = await ChatService.getOrCreateConversation(
-        currentUserId,
-        otherUser.id,
-      );
-      await _loadMessages();
-      _subscribeRealtime();
-    } finally {
+    _lastError = null;
+    if (!_disposed) notifyListeners();
+
+    print('🔵 Chat init: currentUserId=$currentUserId, otherUser.id=${otherUser.id}');
+
+    // Validate IDs
+    if (currentUserId.isEmpty) {
+      _lastError = 'Error: Your user ID is empty. Please log out and login again.';
       _loading = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
+      return;
+    }
+
+    // Suppress notifications while the user is actively viewing this chat
+    ChatNotificationService.instance.activeChatUserId = otherUser.id;
+
+    try {
+      await _fetchMessages();
+      if (!_disposed) _startPolling();
+    } catch (e) {
+      if (!_disposed) {
+        _lastError = e.toString();
+        print('❌ Init error: $e');
+      }
+    } finally {
+      if (!_disposed) {
+        _loading = false;
+        notifyListeners();
+      }
     }
   }
 
-  Future<void> _loadMessages() async {
-    final msgs = await ChatService.loadMessages(_conversationId!);
-    _messages = msgs.reversed.toList(); // oldest first for display
-    await ChatService.markRead(_conversationId!, currentUserId);
+  void _startPolling() {
+    if (_disposed) return;
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
+      if (!_disposed) {
+        try {
+          await _fetchMessages(silent: true);
+        } catch (_) {}
+      }
+    });
   }
 
-  Future<void> loadMore() async {
-    if (!_hasMore || _messages.isEmpty || _conversationId == null) return;
-    final older = await ChatService.loadMessages(
-      _conversationId!,
-      limit: 30,
-      beforeId: _messages.first.id,
+  // ── Core fetch ─────────────────────────────────────────────────────────────
+
+  Future<void> _fetchMessages({bool silent = false}) async {
+    if (_disposed) return;
+
+    // Single API call — backend returns the full conversation when both IDs are provided
+    final result = await _api.getMessages(
+      senderId: currentUserId,
+      receiverId: otherUser.id,
     );
-    if (older.length < 30) _hasMore = false;
-    _messages = [...older.reversed, ..._messages];
-    notifyListeners();
+
+    if (_disposed) return;
+
+    final combined = List<ChatMessengerMessage>.from(result.items)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+    // Messages from the other user, for notification + mark-read logic
+    final theirSent =
+        combined.where((m) => m.senderId == otherUser.id).toList();
+
+    // Detect new messages from the other user → trigger in-app notification
+    if (_lastSeenOtherMsgId > 0 && theirSent.isNotEmpty) {
+      final newMsgs =
+          theirSent.where((m) => m.id > _lastSeenOtherMsgId).toList();
+      for (final msg in newMsgs) {
+        ChatNotificationService.instance.showChatNotification(
+          id: msg.id,
+          senderName: otherUser.name ?? 'Message',
+          content: msg.content,
+          senderId: otherUser.id,
+        );
+      }
+    }
+
+    // Update last seen ID + mark new received messages as read
+    if (theirSent.isNotEmpty) {
+      final maxId =
+          theirSent.map((m) => m.id).reduce((a, b) => a > b ? a : b);
+      if (maxId > _lastSeenOtherMsgId) {
+        _lastSeenOtherMsgId = maxId;
+        final unread = theirSent.where((m) => !m.isRead).toList();
+        _markReceivedRead(unread);
+      }
+    } else if (_lastSeenOtherMsgId == 0 && theirSent.isEmpty) {
+      _lastSeenOtherMsgId = -1; // sentinel: no messages exist yet
+    }
+
+    // Only rebuild if the message list actually changed (compare last ID + count)
+    final prevLastId = _messages.isNotEmpty ? _messages.last.id : -1;
+    final newLastId = combined.isNotEmpty ? combined.last.id : -1;
+    final changed =
+        combined.length != _messages.length || newLastId != prevLastId;
+
+    _messages = combined;
+
+    if (!silent || changed) {
+      if (!_disposed) notifyListeners();
+    }
   }
 
-  void _subscribeRealtime() {
-    if (_conversationId == null) return;
-    _channel = ChatService.subscribeToMessages(
-      _conversationId!,
-      (msg) {
-        // Avoid duplicate if we just sent it
-        if (!_messages.any((m) => m.id == msg.id)) {
-          _messages = [..._messages, msg];
-          notifyListeners();
-          if (msg.senderId != currentUserId) {
-            ChatService.markRead(_conversationId!, currentUserId);
-          }
-        }
-      },
-      (updated) {
-        final idx = _messages.indexWhere((m) => m.id == updated.id);
-        if (idx >= 0) {
-          _messages = List.from(_messages)..[idx] = updated;
-          notifyListeners();
-        }
-      },
-    );
+  void _markReceivedRead(List<ChatMessengerMessage> unread) {
+    for (final msg in unread) {
+      _api
+          .updateMessage(
+            msg.id,
+            senderId: msg.senderId,
+            receiverId: msg.receiverId,
+            content: msg.content,
+            messageType: 'TextChat',
+            isRead: true,
+          )
+          .ignore();
+    }
   }
+
+  // ── Send ───────────────────────────────────────────────────────────────────
 
   Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty || _conversationId == null) return;
-    _sending = true;
-    notifyListeners();
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+    if (_disposed) return;
+    if (currentUserId.isEmpty) {
+      _lastError = 'Error: Your user ID is not set. Please log out and login again.';
+      if (!_disposed) notifyListeners();
+      return;
+    }
+    if (otherUser.id.isEmpty) {
+      _lastError = 'Error: Recipient user ID is not set.';
+      if (!_disposed) notifyListeners();
+      return;
+    }
 
-    // Optimistic insert
-    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    final optimistic = ChatMessage(
-      id: tempId,
-      conversationId: _conversationId!,
-      senderId: currentUserId,
-      text: text.trim(),
-      status: MessageStatus.sending,
-      replyToId: _replyTo,
-      replyToText: _replyToText,
-      replyToSenderName: _replyToSenderName,
-      createdAt: DateTime.now(),
-    );
-    _messages = [..._messages, optimistic];
-    clearReply();
-    notifyListeners();
+    // Detect message type based on content
+    final messageType = MessageType.detectFromContent(trimmed);
+
+    // Show optimistic bubble immediately — feels instant like FB Messenger
+    _optimisticContent = trimmed;
+    _optimisticFailed = false;
+    _sending = true;
+    _lastError = null;
+    if (!_disposed) notifyListeners();
 
     try {
-      final sent = await ChatService.sendMessage(
-        conversationId: _conversationId!,
+      final sent = await _api.sendMessage(
         senderId: currentUserId,
-        text: text.trim(),
-        replyToId: optimistic.replyToId,
-        replyToText: optimistic.replyToText,
-        replyToSenderName: optimistic.replyToSenderName,
+        receiverId: otherUser.id,
+        content: trimmed,
+        messageType: messageType.apiValue,
       );
-      // Replace optimistic with real message
-      _messages = _messages.map((m) => m.id == tempId ? sent : m).toList();
-    } catch (_) {
-      // Mark as failed
-      _messages = _messages
-          .map((m) => m.id == tempId
-              ? m.copyWith(status: MessageStatus.failed)
-              : m)
-          .toList();
+      if (!_disposed) {
+        _messages = [..._messages, sent];
+        _optimisticContent = null;
+        _optimisticFailed = false;
+        _lastError = null;
+      }
+    } catch (e) {
+      if (!_disposed) {
+        _optimisticFailed = true;
+        _lastError = 'Failed to send: ${e.toString()}';
+        print('❌ Send message error: $e');
+      }
     } finally {
-      _sending = false;
+      if (!_disposed) {
+        _sending = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> retryFailedSend() async {
+    final content = _optimisticContent;
+    if (content == null || _disposed) return;
+    _optimisticFailed = false;
+    if (!_disposed) notifyListeners();
+    await sendMessage(content);
+  }
+
+  void dismissFailedSend() {
+    if (_disposed) return;
+    _optimisticContent = null;
+    _optimisticFailed = false;
+    if (!_disposed) notifyListeners();
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────────────────
+
+  Future<void> deleteMessage(int id) async {
+    if (_disposed) return;
+    // Remove optimistically, restore on error
+    final backup = List<ChatMessengerMessage>.from(_messages);
+    _messages = _messages.where((m) => m.id != id).toList();
+    if (!_disposed) notifyListeners();
+    try {
+      await _api.deleteMessage(id);
+    } catch (_) {
+      if (!_disposed) {
+        _messages = backup;
+        notifyListeners();
+      }
+    }
+  }
+
+  // ── Update ─────────────────────────────────────────────────────────────────
+
+  Future<void> updateMessage(int id,
+      {String? content, bool? isRead}) async {
+    if (_disposed) return;
+    final original = _messages.firstWhere((m) => m.id == id);
+    final updated = await _api.updateMessage(
+      id,
+      senderId: original.senderId,
+      receiverId: original.receiverId,
+      content: content ?? original.content,
+      messageType: original.messageType,
+      isRead: isRead ?? original.isRead,
+    );
+    if (!_disposed) {
+      _messages = _messages.map((m) => m.id == id ? updated : m).toList();
       notifyListeners();
     }
   }
 
-  Future<void> deleteMessage(String messageId) async {
-    await ChatService.deleteMessage(messageId);
-    final idx = _messages.indexWhere((m) => m.id == messageId);
-    if (idx >= 0) {
-      _messages = List.from(_messages)
-        ..[idx] = _messages[idx].copyWith(isDeleted: true, text: '');
-      notifyListeners();
-    }
+  // ── Unread count ───────────────────────────────────────────────────────────
+
+  Future<int> getUnreadCount() => _api.getUnreadCount(currentUserId);
+
+  // ── Manual refresh ─────────────────────────────────────────────────────────
+
+  Future<void> refresh() async {
+    try {
+      await _fetchMessages();
+    } catch (_) {}
   }
 
-  Future<void> toggleReaction(String messageId, String emoji) async {
-    if (_conversationId == null) return;
-    final idx = _messages.indexWhere((m) => m.id == messageId);
-    if (idx < 0) return;
-    final msg = _messages[idx];
-    final updated = List<MessageReaction>.from(msg.reactions);
-    final existing = updated.indexWhere(
-      (r) => r.userId == currentUserId && r.emoji == emoji,
-    );
-    if (existing >= 0) {
-      updated.removeAt(existing);
-    } else {
-      updated.removeWhere((r) => r.userId == currentUserId);
-      updated.add(MessageReaction(userId: currentUserId, emoji: emoji));
-    }
-    _messages = List.from(_messages)..[idx] = msg.copyWith(reactions: updated);
-    notifyListeners();
-    await ChatService.toggleReaction(
-      messageId: messageId,
-      conversationId: _conversationId!,
-      userId: currentUserId,
-      emoji: emoji,
-      currentReactions: msg.reactions,
-    );
-  }
-
-  void setReply(ChatMessage msg, String senderName) {
-    _replyTo = msg.id;
-    _replyToText = msg.text ?? '📷 Photo';
-    _replyToSenderName = senderName;
-    notifyListeners();
-  }
-
-  void clearReply() {
-    _replyTo = null;
-    _replyToText = null;
-    _replyToSenderName = null;
-    notifyListeners();
-  }
+  // ── Dispose ────────────────────────────────────────────────────────────────
 
   @override
   void dispose() {
-    if (_channel != null) ChatService.unsubscribe(_channel!);
+    _disposed = true;
+    _pollTimer?.cancel();
+    if (ChatNotificationService.instance.activeChatUserId == otherUser.id) {
+      ChatNotificationService.instance.activeChatUserId = null;
+    }
     super.dispose();
   }
 }

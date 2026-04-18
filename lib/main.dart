@@ -1,4 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
 import 'package:note_app/core/config/supabase_config.dart';
 import 'package:note_app/core/presentation/auth/splash_page.dart';
 import 'package:provider/provider.dart';
@@ -12,9 +16,22 @@ import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_
 import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'l10n/app_localizations.dart';
+import 'package:note_app/core/services/chat_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    try {
+      await FirebaseMessaging.instance.requestPermission();
+    } catch (_) {}
+
+    await ChatNotificationService.instance.init();
+  }
 
   await Supabase.initialize(
     url: supabaseUrl,

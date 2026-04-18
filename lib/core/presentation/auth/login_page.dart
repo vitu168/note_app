@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:note_app/core/constants/color_constant.dart';
 import 'package:note_app/core/constants/font_constant.dart';
@@ -99,9 +100,19 @@ class _LoginPageState extends State<LoginPage>
     setState(() => _isLoading = true);
 
     try {
+      // Request iOS notification permission so APNS token is registered before
+      // calling getToken(). Errors are silently ignored — FCM token is optional.
+      String? fcmToken;
+      try {
+        await FirebaseMessaging.instance.requestPermission();
+        fcmToken = await FirebaseMessaging.instance.getToken();
+      } catch (_) {
+        // FCM token is best-effort; login proceeds without it.
+      }
       final res = await CustomAuthService.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
+        fcmToken: fcmToken,
       );
       if (!mounted) return;
 
