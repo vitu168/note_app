@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/models/user_profile.dart';
 import 'package:note_app/core/services/user_profile_api_service.dart';
 
 /// Manages the current user's profile in the backend.
-/// Call [syncOnLogin] right after the user authenticates.
+/// Call [syncOnLogin] right after the user authenticates (or on app start for guests).
 class UserProfileProvider extends ChangeNotifier {
   final UserProfileApiService _service = UserProfileApiService();
 
@@ -15,16 +16,28 @@ class UserProfileProvider extends ChangeNotifier {
   bool get loading => _loading;
   String? get error => _error;
 
-  static const String _kFixedUserId = '5';
+  /// Returns the authenticated user's ID.
+  /// Throws [StateError] if no user is currently signed in.
+  static Future<String> _getEffectiveUserId() async {
+    final user = await CustomAuthService.getCurrentUser();
+    if (user == null) throw StateError('No authenticated user found.');
+    return user.userId;
+  }
 
-  /// Loads the fixed user profile (ID = 5) from the backend.
+  /// Loads the current user's profile. Creates a new profile if none exists yet.
   Future<void> syncOnLogin() async {
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _profile = await _service.getProfileById(_kFixedUserId);
+      final user = await CustomAuthService.getCurrentUser();
+      if (user == null) throw StateError('No authenticated user found.');
+      _profile = await _service.ensureProfile(
+        id: user.userId,
+        email: user.email,
+        name: user.name,
+      );
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -39,7 +52,13 @@ class UserProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _profile = await _service.getProfileById(_kFixedUserId);
+      final user = await CustomAuthService.getCurrentUser();
+      if (user == null) throw StateError('No authenticated user found.');
+      _profile = await _service.ensureProfile(
+        id: user.userId,
+        email: user.email,
+        name: user.name,
+      );
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -60,9 +79,10 @@ class UserProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final uid = await _getEffectiveUserId();
       final isNote = _profile!.isNote ?? false;
       await _service.updateProfile(
-        id: _kFixedUserId,
+        id: uid,
         name: name,
         avatarUrl: avatarUrl,
         email: email,

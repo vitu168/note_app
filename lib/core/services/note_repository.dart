@@ -1,3 +1,4 @@
+import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/services/note_api_service.dart';
 
@@ -12,7 +13,13 @@ class NoteRepository {
   final Set<int> _archived = {};
   List<NoteInfo> _cache = [];
 
-  static const int _userId = 5;
+  /// Returns the authenticated user's ID string (UUID).
+  /// Throws [StateError] if no user is currently signed in.
+  static Future<String> _getEffectiveUserId() async {
+    final user = await CustomAuthService.getCurrentUser();
+    if (user == null) throw StateError('No authenticated user found.');
+    return user.userId;
+  }
 
   Future<List<NoteInfo>> getNotes({
     bool includeArchived = false,
@@ -21,8 +28,9 @@ class NoteRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
+    final uid = await _getEffectiveUserId();
     final all = await _api.getNotes(
-      userId: _userId,
+      userId: uid,
       search: search,
       isFavorites: isFavorites,
       page: page,
@@ -46,10 +54,10 @@ class NoteRepository {
   Future<NoteInfo> addNote({
     required String name,
     String? description,
-    int? userId,
+    String? userId,
     bool isFavorites = false,
   }) async {
-    final uid = userId ?? _userId;
+    final uid = userId ?? await _getEffectiveUserId();
     final note = await _api.createNote(
       name: name,
       description: description,
@@ -61,11 +69,12 @@ class NoteRepository {
   }
 
   Future<NoteInfo> updateNote(NoteInfo note) async {
+    final uid = (note.userId?.isNotEmpty == true) ? note.userId! : await _getEffectiveUserId();
     await _api.updateNote(
       id: note.id,
       name: note.name,
       description: note.description,
-      userId: int.tryParse(note.userId ?? '') ?? _userId,
+      userId: uid,
       isFavorites: note.isFavorites,
     );
     final idx = _cache.indexWhere((n) => n.id == note.id);
@@ -84,11 +93,12 @@ class NoteRepository {
     if (idx == -1) return;
     final note = _cache[idx];
     final flipped = note.copyWith(isFavorites: !note.isFavorites);
+    final uid = (note.userId?.isNotEmpty == true) ? note.userId! : await _getEffectiveUserId();
     await _api.updateNote(
       id: id,
       name: note.name,
       description: note.description,
-      userId: int.tryParse(note.userId ?? '') ?? _userId,
+      userId: uid,
       isFavorites: flipped.isFavorites,
     );
     _cache[idx] = flipped;

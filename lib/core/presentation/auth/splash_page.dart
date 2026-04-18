@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/auth/welcome_page.dart';
+import 'package:note_app/core/presentation/pages/main_page.dart';
+import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
 
 class SplashPage extends StatefulWidget {
@@ -87,12 +89,16 @@ class _SplashPageState extends State<SplashPage>
     _ctrl.forward();
 
     // Navigate after animation ends + small pause
-    Future.delayed(const Duration(milliseconds: 3000), () {
+    Future.delayed(const Duration(milliseconds: 3000), () async {
       if (!mounted) return;
+      
+      final isAuthenticated = await CustomAuthService.isAuthenticated();
+      final nextPage = isAuthenticated ? const MainPage() : const WelcomePage();
+      
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (_, __, ___) => const WelcomePage(),
+          pageBuilder: (_, __, ___) => nextPage,
           transitionsBuilder: (_, anim, __, child) {
             return FadeTransition(opacity: anim, child: child);
           },

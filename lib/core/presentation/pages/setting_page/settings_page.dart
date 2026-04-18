@@ -12,7 +12,7 @@ import 'package:note_app/core/services/storage_service.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:provider/provider.dart';
 import 'package:note_app/l10n/app_localizations.dart';
-import 'package:note_app/core/data/supabase/auth_service.dart';
+import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/presentation/auth/welcome_page.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 
@@ -140,8 +140,10 @@ class _SettingsPageState extends State<SettingsPage>
                     const Center(child: CircularProgressIndicator()),
               );
               try {
-                await AuthService.signOut()
+                await CustomAuthService.signOut()
                     .timeout(const Duration(seconds: 5));
+                if (!context.mounted) return;
+                context.read<UserProfileProvider>().clear();
                 Navigator.pop(context);
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -150,6 +152,8 @@ class _SettingsPageState extends State<SettingsPage>
                 );
                 showToast(context, '${strings.logout} successful');
               } on TimeoutException {
+                if (!context.mounted) return;
+                context.read<UserProfileProvider>().clear();
                 Navigator.pop(context);
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -160,8 +164,9 @@ class _SettingsPageState extends State<SettingsPage>
                   context,
                   'Sign out timed out — signed out locally.',
                 );
-                unawaited(AuthService.signOut().catchError((_) {}));
+                unawaited(CustomAuthService.signOut().catchError((_) {}));
               } catch (e) {
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 showToast(context, 'Logout failed: $e');
               }
@@ -179,8 +184,7 @@ class _SettingsPageState extends State<SettingsPage>
 void _showEditProfileSheet(BuildContext context) {
   final profile = context.read<UserProfileProvider>().profile;
   if (profile == null) return;
-  final user = AuthService.currentUser();
-  final email = user?.email ?? profile.email ?? '';
+  final email = profile.email ?? 'No Email';
 
   showModalBottomSheet(
     context: context,
@@ -197,13 +201,12 @@ class _UserProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = AuthService.currentUser();
     final profile = context.watch<UserProfileProvider>().profile;
     final helper = context.watch<HelperProvider>();
     final t = context.appTheme;
 
-    final name = profile?.name ?? user?.email ?? 'User';
-    final email = user?.email ?? '';
+    final name = profile?.name ?? profile?.email ?? 'No User';
+    final email = profile?.email ?? '';
     final avatarUrl = profile?.avatarUrl;
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
     final accent = helper.primaryColor;

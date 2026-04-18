@@ -28,9 +28,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomePageProvider>().loadNotes();
-    });
+    // Notes are already loaded by MainPage.initState()
+    // This method can still call refresh() when needed (e.g., after returning from note editor)
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:note_app/core/config/supabase_config.dart';
 import 'package:note_app/core/presentation/auth/splash_page.dart';
 import 'package:provider/provider.dart';
 import 'package:note_app/core/theme/app_theme.dart';
@@ -9,13 +10,12 @@ import 'package:note_app/core/presentation/pages/chat_page/chat_page_provider.da
 import 'package:note_app/core/presentation/pages/archive_page/archive_page_provider.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_provider.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
-import 'l10n/app_localizations.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'core/config/supabase_config.dart';
+import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,

@@ -93,7 +93,8 @@ class HomePageProvider extends ChangeNotifier {
 
   Future<void> deleteNote(int id) async {
     await _repo.deleteNote(id);
-    _notes.removeWhere((n) => n.id == id);
+    // Create a mutable copy and remove the note
+    _notes = List.of(_notes)..removeWhere((n) => n.id == id);
     notifyListeners();
   }
 

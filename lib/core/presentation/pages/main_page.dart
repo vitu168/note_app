@@ -38,9 +38,10 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    // Ensure the backend user profile exists (no-op for guests)
+    // Load profile and notes only once when MainPage is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProfileProvider>().syncOnLogin();
+      context.read<HomePageProvider>().loadNotes();
     });
   }
 

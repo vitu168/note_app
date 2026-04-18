@@ -12,7 +12,7 @@ class NoteApiService {
   /// GET /api/NoteInfo
   /// Returns all notes matching optional filters.
   Future<List<NoteInfo>> getNotes({
-    int? userId,
+    String? userId,
     String? search,
     bool? isFavorites,
     int page = 1,
@@ -43,13 +43,13 @@ class NoteApiService {
   Future<NoteInfo> createNote({
     required String name,
     String? description,
-    required int userId,
+    required String userId,
     bool isFavorites = false,
   }) async {
     final body = {
       'name': name,
       'description': description,
-      'userId': userId.toString(),
+      'userId': userId,
       'isFavorites': isFavorites,
     };
     final data = await _api.post('/api/NoteInfo', data: body);
@@ -61,13 +61,13 @@ class NoteApiService {
     required int id,
     String? name,
     String? description,
-    required int userId,
+    required String userId,
     bool isFavorites = false,
   }) async {
     final body = {
       'name': name,
       'description': description,
-      'userId': userId.toString(),
+      'userId': userId,
       'isFavorites': isFavorites,
     };
     await _api.put('/api/NoteInfo/$id', data: body);

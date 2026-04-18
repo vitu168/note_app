@@ -89,13 +89,13 @@ class _NoteViewPageState extends State<NoteViewPage> {
     try {
       await context.read<HomePageProvider>().deleteNote(_note.id);
       if (context.mounted) {
-        await context.read<HomePageProvider>().loadNotes();
         showToast(context, 'Note deleted', type: ToastType.success);
-        if (context.mounted) Navigator.pop(context, true);
+        Navigator.pop(context, true);  // Return true to refresh home page
       }
     } catch (e) {
       if (context.mounted) {
         showToast(context, 'Error: $e', type: ToastType.error);
+        Navigator.pop(context, true);  // Still return true to ensure consistency
       }
     }
   }
