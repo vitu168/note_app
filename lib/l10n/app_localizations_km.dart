@@ -244,4 +244,41 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get chatNoUsers => 'រក​មិន​ឃើញ​អ្នក​ប្រើ';
+
+  @override
+  String get notificationsTitle => 'ការជូនដំណឹង';
+
+  @override
+  String get markAllRead => 'សម្គាល់ថាបានអាន ទាំងអស់';
+
+  @override
+  String get clearAll => 'លុបទាំងអស់';
+
+  @override
+  String get clearNotificationsConfirm =>
+      'តើអ្នកពិតជាចង់លុបការជូនដំណឹងទាំងអស់មែនទេ?';
+
+  @override
+  String get noNotificationsDesc => 'អ្នកបានដោះស្រាយរៀងរាល់រឿង!';
+
+  @override
+  String get justNow => 'ឥឡូវនេះ';
+
+  @override
+  String minutesAgo(int count) {
+    return '$countម៉ោងកាលពីមុន';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return '$countម៉ោងកាលពីមុន';
+  }
+
+  @override
+  String get yesterday => 'ម្សិលមិញ';
+
+  @override
+  String daysAgo(int count) {
+    return '$countថ្ងៃកាលពីមុន';
+  }
 }

@@ -242,4 +242,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatNoUsers => 'No users found';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get markAllRead => 'Mark all as read';
+
+  @override
+  String get clearAll => 'Clear all';
+
+  @override
+  String get clearNotificationsConfirm =>
+      'Are you sure you want to delete all notifications?';
+
+  @override
+  String get noNotificationsDesc => 'You\'re all caught up!';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String daysAgo(int count) {
+    return '${count}d ago';
+  }
 }

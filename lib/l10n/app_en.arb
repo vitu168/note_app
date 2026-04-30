@@ -77,5 +77,36 @@
   "language": "language",
   "chatTitle": "People",
   "chatSearchHint": "Search users...",
-  "chatNoUsers": "No users found"
+  "chatNoUsers": "No users found",
+  "notificationsTitle": "Notifications",
+  "markAllRead": "Mark all as read",
+  "clearAll": "Clear all",
+  "clearNotificationsConfirm": "Are you sure you want to delete all notifications?",
+  "noNotificationsDesc": "You're all caught up!",
+  "justNow": "Just now",
+  "minutesAgo": "{count}m ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count}h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yesterday": "Yesterday",
+  "daysAgo": "{count}d ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
