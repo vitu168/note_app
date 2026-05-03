@@ -12,6 +12,7 @@ class NoteDetailPageProvider extends ChangeNotifier {
     required String name,
     String? description,
     bool isFavorites = false,
+    DateTime? reminder,
   }) async {
     _loading = true;
     notifyListeners();
@@ -20,6 +21,7 @@ class NoteDetailPageProvider extends ChangeNotifier {
         name: name,
         description: description,
         isFavorites: isFavorites,
+        reminder: reminder,
       );
       return n;
     } finally {

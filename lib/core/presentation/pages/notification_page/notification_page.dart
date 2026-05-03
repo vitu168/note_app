@@ -61,9 +61,17 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: t.surface,
-      padding: const EdgeInsets.fromLTRB(20, 16, 8, 16),
+      padding: const EdgeInsets.fromLTRB(4, 8, 8, 16),
       child: Row(
         children: [
+          if (Navigator.of(context).canPop())
+            IconButton(
+              icon: Icon(Icons.arrow_back_rounded, color: t.titleText),
+              tooltip: 'Back',
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          else
+            const SizedBox(width: 16),
           Expanded(
             child: Text(
               l10n.notificationsTitle,

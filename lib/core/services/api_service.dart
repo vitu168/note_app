@@ -90,12 +90,16 @@ class ApiService {
     }
   }
 
+  Options? _opts(Map<String, dynamic>? headers) =>
+      headers == null ? null : Options(headers: headers);
+
   // Generic GET request
   Future<dynamic> get(String endpoint,
-      {Map<String, dynamic>? queryParameters}) async {
+      {Map<String, dynamic>? queryParameters,
+      Map<String, dynamic>? headers}) async {
     try {
-      final response =
-      await _dio.get(endpoint, queryParameters: queryParameters);
+      final response = await _dio.get(endpoint,
+          queryParameters: queryParameters, options: _opts(headers));
       return response.data;
     } catch (e) {
       rethrow;
@@ -104,10 +108,14 @@ class ApiService {
 
   // Generic POST request
   Future<dynamic> post(String endpoint,
-      {dynamic data, Map<String, dynamic>? queryParameters}) async {
+      {dynamic data,
+      Map<String, dynamic>? queryParameters,
+      Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.post(endpoint,
-          data: data, queryParameters: queryParameters);
+          data: data,
+          queryParameters: queryParameters,
+          options: _opts(headers));
       return response.data;
     } catch (e) {
       rethrow;
@@ -116,10 +124,14 @@ class ApiService {
 
   // Generic PUT request
   Future<dynamic> put(String endpoint,
-      {dynamic data, Map<String, dynamic>? queryParameters}) async {
+      {dynamic data,
+      Map<String, dynamic>? queryParameters,
+      Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.put(endpoint,
-          data: data, queryParameters: queryParameters);
+          data: data,
+          queryParameters: queryParameters,
+          options: _opts(headers));
       return response.data;
     } catch (e) {
       rethrow;
@@ -128,10 +140,14 @@ class ApiService {
 
   // Generic DELETE request
   Future<dynamic> delete(String endpoint,
-      {Map<String, dynamic>? queryParameters}) async {
+      {dynamic data,
+      Map<String, dynamic>? queryParameters,
+      Map<String, dynamic>? headers}) async {
     try {
-      final response =
-          await _dio.delete(endpoint, queryParameters: queryParameters);
+      final response = await _dio.delete(endpoint,
+          data: data,
+          queryParameters: queryParameters,
+          options: _opts(headers));
       return response.data;
     } catch (e) {
       rethrow;

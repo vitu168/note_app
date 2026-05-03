@@ -173,9 +173,12 @@ class CustomAuthService {
   /// Silently swallows errors — notifications are non-critical.
   static Future<void> saveFcmToken(String fcmToken) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString(_userIdKey);
+      if (userId == null || userId.isEmpty) return;
       await _apiService.post(
         '/api/device/save-token',
-        data: {'fcmToken': fcmToken},
+        data: {'userId': userId, 'fcmToken': fcmToken},
       );
     } catch (_) {}
   }

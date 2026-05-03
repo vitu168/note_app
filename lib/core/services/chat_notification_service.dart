@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:note_app/core/services/notification_store.dart';
 
 // ─── Background FCM handler ── must be top-level ──────────────────────────────
 @pragma('vm:entry-point')
@@ -67,11 +68,12 @@ class ChatNotificationService {
   void _onForegroundFcm(RemoteMessage message) {
     final n = message.notification;
     if (n == null) return;
+    final senderId = message.data['senderId']?.toString();
     showChatNotification(
       id: message.hashCode,
       senderName: n.title ?? 'New message',
       content: n.body ?? '',
-      senderId: null, // unknown from raw FCM — always show
+      senderId: senderId,
     );
   }
 
@@ -83,11 +85,20 @@ class ChatNotificationService {
     required String content,
     required String? senderId,
   }) async {
-    // Notifications only supported on mobile platforms
-    if (kIsWeb) return;
-
     // Don't notify while the user is actively reading this conversation
     if (senderId != null && activeChatUserId == senderId) return;
+
+    // Always record into the in-app notification store so the bell badge and
+    // notification page reflect the message even on web (where the local
+    // plugin is unavailable).
+    NotificationStore.instance.add(
+      title: senderName,
+      body: content,
+      senderId: senderId,
+    );
+
+    // Local OS notifications only on mobile.
+    if (kIsWeb) return;
 
     await _plugin.show(
       id,

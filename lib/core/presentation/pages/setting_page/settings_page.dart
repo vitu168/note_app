@@ -15,8 +15,11 @@ import 'package:note_app/l10n/app_localizations.dart';
 import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/presentation/auth/welcome_page.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
+import 'package:note_app/core/presentation/pages/home_page/home_page_provider.dart';
+import 'package:note_app/core/services/note_repository.dart';
+import 'package:note_app/core/services/reminder_notification_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-// ─── Accent color presets shown in the Appearance card ────────────────────────
 const _kPresets = <Color>[
   Color(0xFF5C6BC0), // Indigo
   Color(0xFF1E88E5), // Blue
@@ -28,8 +31,6 @@ const _kPresets = <Color>[
   Color(0xFF8E24AA), // Purple
   Color(0xFF795548), // Brown
 ];
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -91,6 +92,21 @@ class _SettingsPageState extends State<SettingsPage>
               _AppearanceCard(helper: helper),
               const SizedBox(height: 12),
 
+              // ── Notifications (test) ──────────────────────────
+              _SectionLabel(label: 'Notifications'),
+              const SizedBox(height: 12),
+              _SettingsGroup(children: [
+                _SettingRow(
+                  icon: Icons.notifications_active_outlined,
+                  iconBg: t.primary,
+                  title: 'Send a test reminder',
+                  subtitle:
+                      'Creates a note with a reminder 15 seconds from now.',
+                  onTap: () => _runReminderSmokeTest(context),
+                ),
+              ]),
+              const SizedBox(height: 12),
+
               // ── Logout ────────────────────────────────────────
               _SectionLabel(label: 'Account'),
               const SizedBox(height: 12),
@@ -113,6 +129,63 @@ class _SettingsPageState extends State<SettingsPage>
         ),
       ),
     );
+  }
+
+  // ── Reminder smoke test ────────────────────────────────────────────────────
+
+  Future<void> _runReminderSmokeTest(BuildContext context) async {
+    final svc = ReminderNotificationService.instance;
+
+    if (kIsWeb) {
+      showToast(
+        context,
+        'Local notifications are not supported on web — try Android/iOS.',
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    final granted = await svc.ensurePermission();
+    if (granted == false) {
+      if (context.mounted) {
+        showToast(
+          context,
+          'Notification permission denied. Enable it in system settings.',
+          type: ToastType.error,
+        );
+      }
+      return;
+    }
+
+    final fireAt = DateTime.now().add(const Duration(seconds: 15));
+    final hh = fireAt.hour.toString().padLeft(2, '0');
+    final mm = fireAt.minute.toString().padLeft(2, '0');
+    final ss = fireAt.second.toString().padLeft(2, '0');
+
+    try {
+      await NoteRepository().addNote(
+        name: 'Reminder smoke test',
+        description:
+            'If you see this notification at the scheduled time, reminders work.',
+        reminder: fireAt,
+      );
+      if (context.mounted) {
+        await context.read<HomePageProvider>().loadNotes();
+      }
+      final pending = await svc.pending();
+      if (context.mounted) {
+        showToast(
+          context,
+          'Scheduled for $hh:$mm:$ss · ${pending.length} alert(s) queued. '
+          'It will appear on the bell page when it fires.',
+          type: ToastType.success,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showToast(context, 'Test failed: $e', type: ToastType.error);
+      }
+    }
   }
 
   // ── Dialogs ────────────────────────────────────────────────────────────────

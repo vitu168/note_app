@@ -5,7 +5,9 @@ class NoteInfo {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? userId;
+  final List<String> userIds;
   final bool isFavorites;
+  final DateTime? reminder;
 
   const NoteInfo({
     required this.id,
@@ -14,10 +16,16 @@ class NoteInfo {
     this.createdAt,
     this.updatedAt,
     this.userId,
+    this.userIds = const [],
     this.isFavorites = false,
+    this.reminder,
   });
 
   factory NoteInfo.fromJson(Map<String, dynamic> json) {
+    final rawIds = json['userIds'];
+    final ids = rawIds is List
+        ? rawIds.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList()
+        : <String>[];
     return NoteInfo(
       id: json['id'] as int,
       name: json['name'] as String?,
@@ -29,7 +37,11 @@ class NoteInfo {
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
       userId: json['userId']?.toString(),
+      userIds: ids,
       isFavorites: json['isFavorites'] as bool? ?? false,
+      reminder: json['reminder'] != null
+          ? DateTime.tryParse(json['reminder'].toString())
+          : null,
     );
   }
 
@@ -38,6 +50,9 @@ class NoteInfo {
     String? description,
     bool? isFavorites,
     DateTime? updatedAt,
+    List<String>? userIds,
+    DateTime? reminder,
+    bool clearReminder = false,
   }) {
     return NoteInfo(
       id: id,
@@ -46,7 +61,9 @@ class NoteInfo {
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       userId: userId,
+      userIds: userIds ?? this.userIds,
       isFavorites: isFavorites ?? this.isFavorites,
+      reminder: clearReminder ? null : (reminder ?? this.reminder),
     );
   }
 
@@ -58,7 +75,9 @@ class NoteInfo {
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'userId': userId,
+      'userIds': userIds,
       'isFavorites': isFavorites,
+      'reminder': reminder?.toIso8601String(),
     };
   }
 }

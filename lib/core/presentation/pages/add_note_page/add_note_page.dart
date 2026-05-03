@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:note_app/l10n/app_localizations.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/presentation/components/app_page_header.dart';
@@ -23,7 +24,7 @@ class _AddNotePageState extends State<AddNotePage> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   bool _isFavorite = false;
-  TimeOfDay? _reminderTime;
+  DateTime? _reminderAt;
   bool _saving = false;
 
   bool get _isEditing => widget.existingNote != null;
@@ -36,6 +37,7 @@ class _AddNotePageState extends State<AddNotePage> {
       _titleController.text = note.name ?? '';
       _contentController.text = note.description ?? '';
       _isFavorite = note.isFavorites;
+      _reminderAt = note.reminder;
     }
   }
 
@@ -47,13 +49,41 @@ class _AddNotePageState extends State<AddNotePage> {
   }
 
   Future<void> _selectReminderTime() async {
-    final picked = await showTimePicker(
+    final now = DateTime.now();
+    final initial = _reminderAt != null && _reminderAt!.isAfter(now)
+        ? _reminderAt!
+        : now.add(const Duration(minutes: 5));
+    final pickedDate = await showDatePicker(
       context: context,
-      initialTime: _reminderTime ?? TimeOfDay.now(),
+      initialDate: initial,
+      firstDate: now.subtract(const Duration(days: 1)),
+      lastDate: now.add(const Duration(days: 365 * 5)),
     );
-    if (picked != null) {
-      setState(() => _reminderTime = picked);
+    if (pickedDate == null || !mounted) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (pickedTime == null) return;
+    final combined = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+    if (!combined.isAfter(DateTime.now())) {
+      if (mounted) {
+        showToast(context, 'Reminder must be in the future',
+            type: ToastType.error);
+      }
+      return;
     }
+    setState(() => _reminderAt = combined);
+  }
+
+  String _formatReminder(DateTime dt) {
+    return DateFormat('MMM d, y · h:mm a').format(dt);
   }
 
   Future<void> _save() async {
@@ -72,6 +102,8 @@ class _AddNotePageState extends State<AddNotePage> {
             name: title,
             description: _contentController.text.trim(),
             isFavorites: _isFavorite,
+            reminder: _reminderAt,
+            clearReminder: _reminderAt == null,
           ),
         );
       } else {
@@ -79,11 +111,15 @@ class _AddNotePageState extends State<AddNotePage> {
           name: title,
           description: _contentController.text.trim(),
           isFavorites: _isFavorite,
+          reminder: _reminderAt,
         );
       }
       if (context.mounted) {
-        showToast(context, AppLocalizations.of(context).noteSaved,
-            type: ToastType.success);
+        final saved = AppLocalizations.of(context).noteSaved;
+        final msg = _reminderAt != null
+            ? '$saved · Reminder set for ${_formatReminder(_reminderAt!)}'
+            : saved;
+        showToast(context, msg, type: ToastType.success);
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -305,7 +341,7 @@ class _AddNotePageState extends State<AddNotePage> {
                             Icon(
                               Icons.notifications_outlined,
                               size: 20,
-                              color: _reminderTime != null
+                              color: _reminderAt != null
                                   ? t.primary
                                   : t.hintText,
                             ),
@@ -320,7 +356,7 @@ class _AddNotePageState extends State<AddNotePage> {
                                 ),
                               ),
                             ),
-                            if (_reminderTime != null) ...[
+                            if (_reminderAt != null) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
@@ -331,7 +367,7 @@ class _AddNotePageState extends State<AddNotePage> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  _reminderTime!.format(context),
+                                  _formatReminder(_reminderAt!),
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -342,7 +378,7 @@ class _AddNotePageState extends State<AddNotePage> {
                               const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: () =>
-                                    setState(() => _reminderTime = null),
+                                    setState(() => _reminderAt = null),
                                 child: Icon(
                                   Icons.close_rounded,
                                   size: 16,
@@ -351,7 +387,7 @@ class _AddNotePageState extends State<AddNotePage> {
                               ),
                             ] else
                               Text(
-                                'Set time',
+                                'Set date & time',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: t.hintText,

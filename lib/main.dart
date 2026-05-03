@@ -17,6 +17,7 @@ import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'l10n/app_localizations.dart';
 import 'package:note_app/core/services/chat_notification_service.dart';
+import 'package:note_app/core/services/reminder_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,7 @@ Future<void> main() async {
     } catch (_) {}
 
     await ChatNotificationService.instance.init();
+    await ReminderNotificationService.instance.init();
   }
 
   await Supabase.initialize(

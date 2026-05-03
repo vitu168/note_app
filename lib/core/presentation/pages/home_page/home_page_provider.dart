@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/services/note_repository.dart';
+import 'package:note_app/core/services/reminder_notification_service.dart';
 
 class HomePageProvider extends ChangeNotifier {
   final NoteRepository _repo = NoteRepository();
@@ -26,6 +28,9 @@ class HomePageProvider extends ChangeNotifier {
       _notes = await _repo.getNotes(
         search: search,
       );
+      // Re-arm reminder alerts for any future reminders. Cheap & idempotent —
+      // existing alerts with the same id are replaced.
+      unawaited(ReminderNotificationService.instance.rescheduleAll(_notes));
     } finally {
       _loading = false;
       notifyListeners();

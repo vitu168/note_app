@@ -8,13 +8,8 @@ class StorageService {
   StorageService._();
   static final StorageService _instance = StorageService._();
   factory StorageService() => _instance;
-
   static final _storage = Supabase.instance.client.storage;
-
   static const String _kAvatarBucket = 'avatars';
-
-  /// Uploads [imageFile] to the avatars bucket and returns the public URL.
-  /// Throws a [StorageException] or [Exception] on failure.
   Future<String> uploadAvatar({
     required File imageFile,
     required String userId,

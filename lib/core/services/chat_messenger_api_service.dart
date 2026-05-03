@@ -83,11 +83,27 @@ class ChatMessengerApiService {
     await _api.delete('$_base/$id');
   }
 
+  /// Mark a single message as read.
+  /// Calls PUT /api/ChatMessenger/{id}/mark-as-read
+  Future<void> markAsRead(int id) async {
+    await _api.put('$_base/$id/mark-as-read');
+  }
+
   /// Get the unread message count for a receiver.
   /// Calls GET /api/ChatMessenger/unread-count/{receiverId}
   Future<int> getUnreadCount(String receiverId) async {
     final response = await _api.get('$_base/unread-count/$receiverId');
     final json = response as Map<String, dynamic>;
     return (json['unreadCount'] as num).toInt();
+  }
+
+  /// Fetch all messages in a conversation (no pagination), sorted ascending.
+  /// Calls GET /api/ChatMessenger/conversation/{conversationId}
+  Future<List<ChatMessengerMessage>> getConversation(int conversationId) async {
+    final response = await _api.get('$_base/conversation/$conversationId');
+    final list = (response as List<dynamic>?) ?? [];
+    return list
+        .map((e) => ChatMessengerMessage.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

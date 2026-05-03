@@ -51,5 +51,12 @@
 	<string>Used to take a new profile photo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Used to save photos to your library.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 </dict>
 </plist>

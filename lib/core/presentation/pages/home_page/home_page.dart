@@ -7,6 +7,9 @@ import 'package:note_app/core/presentation/widgets/skeleton/note_card_skeleton.d
 import 'package:note_app/core/presentation/widgets/skeleton/shimmer_box.dart';
 import 'package:note_app/core/presentation/components/empty_data.dart';
 import 'package:note_app/core/presentation/pages/note_view_page/note_view_page.dart';
+import 'package:note_app/core/presentation/pages/notification_page/notification_page.dart';
+import 'package:note_app/core/presentation/pages/notification_page/notification_page_provider.dart';
+import 'package:note_app/core/services/notification_store.dart';
 import 'package:note_app/core/models/note_info.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
@@ -345,15 +348,61 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
           ),
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: t.bodyText,
-              size: 22,
-            ),
-            tooltip: l10n.notifications,
-            onPressed: () {},
+          child: AnimatedBuilder(
+            animation: NotificationStore.instance,
+            builder: (context, _) {
+              final unread = NotificationStore.instance.unreadCount;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: t.bodyText,
+                      size: 22,
+                    ),
+                    tooltip: l10n.notifications,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider(
+                            create: (_) => NotificationPageProvider(),
+                            child: const NotificationPage(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        constraints: const BoxConstraints(
+                            minWidth: 16, minHeight: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: t.surface, width: 1.5),
+                        ),
+                        child: Text(
+                          unread > 99 ? '99+' : '$unread',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ],
