@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
       provider.loadNotes();
     });
 
-    // load current user info and listen for auth changes
+
     _loadUser();
     _authSub = AuthService.onAuthStateChange().listen((_) => _loadUser());
   }
