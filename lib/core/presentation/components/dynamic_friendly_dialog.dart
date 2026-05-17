@@ -3,6 +3,7 @@ import '../../constants/color_constant.dart';
 import '../../constants/font_constant.dart';
 import '../../constants/enum_constant.dart';
 import 'dynamic_buttom.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 /// A comprehensive, mobile-friendly dialog component that follows the app's design system.
 /// Supports various dialog types, sizes, and powerful customization options.
@@ -243,7 +244,7 @@ class _DynamicFriendlyDialogState extends State<DynamicFriendlyDialog>
                               widget.customContent!,
                             ],
                             const SizedBox(height: 24.0),
-                            _buildActions(isDark),
+                            _buildActions(context, isDark),
                           ],
                         ),
                       ),
@@ -398,7 +399,8 @@ class _DynamicFriendlyDialogState extends State<DynamicFriendlyDialog>
     );
   }
 
-  Widget _buildActions(bool isDark) {
+  Widget _buildActions(BuildContext context, bool isDark) {
+    final s = AppLocalizations.of(context);
     final actions = <Widget>[];
 
     // Neutral button (usually on the left)
@@ -455,7 +457,7 @@ class _DynamicFriendlyDialogState extends State<DynamicFriendlyDialog>
         SizedBox(
           width: double.infinity,
           child: DynamicButton(
-            label: 'OK',
+            label: s.ok,
             type: DynamicButtonType.primary,
             onPressed: () => Navigator.of(context).pop(),
           ),

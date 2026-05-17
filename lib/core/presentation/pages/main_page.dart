@@ -6,6 +6,7 @@ import 'package:note_app/core/presentation/pages/chat_page/chat_page.dart';
 import 'package:note_app/core/presentation/pages/home_page/home_page.dart';
 import 'package:note_app/core/presentation/pages/setting_page/settings_page.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/add_note_page.dart';
+import 'package:note_app/core/presentation/pages/calendar_page/calendar_page.dart';
 import 'package:note_app/core/theme/app_theme.dart';
 import 'package:note_app/core/presentation/components/menu_navigation/menu_navigation.dart';
 import 'package:note_app/core/providers/helper_provider.dart';
@@ -57,8 +58,9 @@ class _MainPageState extends State<MainPage> {
   }
 
   late final List<Widget> _pages = [
-    HomePage(onSettingsPressed: () => _onItemTapped(2)),
+    HomePage(onSettingsPressed: () => _onItemTapped(3)),
     const ChatPage(),
+    const CalendarPage(),
     const SettingsPage(),
   ];
 

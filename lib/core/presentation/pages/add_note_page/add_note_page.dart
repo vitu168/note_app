@@ -8,6 +8,7 @@ import 'package:note_app/core/presentation/components/app_text_field.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/presentation/pages/add_note_page/note_detail_page_provider.dart';
+import 'package:note_app/core/presentation/pages/add_note_page/add_note_components/share_note_bottom_sheet.dart';
 import 'package:note_app/core/providers/user_profile_provider.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,7 @@ class _AddNotePageState extends State<AddNotePage> {
   bool _isFavorite = false;
   DateTime? _reminderAt;
   bool _saving = false;
+  List<String> _shareWithUserIds = [];
 
   bool get _isEditing => widget.existingNote != null;
 
@@ -38,7 +40,14 @@ class _AddNotePageState extends State<AddNotePage> {
       _contentController.text = note.description ?? '';
       _isFavorite = note.isFavorites;
       _reminderAt = note.reminder;
+      _shareWithUserIds = List.of(note.userIds ?? []);
     }
+    // Load available users for sharing
+    Future.microtask(() {
+      if (mounted) {
+        context.read<NoteDetailPageProvider>().loadAvailableUsers();
+      }
+    });
   }
 
   @override
@@ -86,6 +95,26 @@ class _AddNotePageState extends State<AddNotePage> {
     return DateFormat('MMM d, y · h:mm a').format(dt);
   }
 
+  void _openShareSheet() {
+    final provider = context.read<NoteDetailPageProvider>();
+    provider.clearSelectedUsers();
+    for (var uid in _shareWithUserIds) {
+      provider.addSelectedUser(uid);
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ShareNoteBottomSheet(
+        selectedUserIds: _shareWithUserIds,
+        onSelected: (selectedIds) {
+          setState(() => _shareWithUserIds = selectedIds);
+        },
+      ),
+    );
+  }
+
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
@@ -112,6 +141,7 @@ class _AddNotePageState extends State<AddNotePage> {
           description: _contentController.text.trim(),
           isFavorites: _isFavorite,
           reminder: _reminderAt,
+          shareWithUserIds: _shareWithUserIds.isNotEmpty ? _shareWithUserIds : null,
         );
       }
       if (context.mounted) {
@@ -388,6 +418,75 @@ class _AddNotePageState extends State<AddNotePage> {
                             ] else
                               Text(
                                 'Set date & time',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  color: t.hintText,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: t.divider.withValues(alpha: 0.4),
+                    ),
+                    // Share section
+                    InkWell(
+                      onTap: _openShareSheet,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_add_outlined,
+                              size: 20,
+                              color: _shareWithUserIds.isNotEmpty
+                                  ? t.primary
+                                  : t.hintText,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Share with Users',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: t.titleText,
+                                ),
+                              ),
+                            ),
+                            if (_shareWithUserIds.isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: t.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '${_shareWithUserIds.length} ${_shareWithUserIds.length == 1 ? 'user' : 'users'}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: t.primary,
+                                  ),
+                                ),
+                              ),
+                            ] else
+                              Text(
+                                'Select users',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: t.hintText,

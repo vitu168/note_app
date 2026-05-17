@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/constants/properties_constant.dart';
 import 'package:note_app/core/presentation/components/item_gap.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 class FormTextInput extends StatefulWidget {
   final String? label;
@@ -106,6 +107,7 @@ class _FormTextInputState extends State<FormTextInput> {
 
   Widget? _buildSuffix(BuildContext context) {
     final theme = Theme.of(context);
+    final s = AppLocalizations.of(context);
     final hasText = _effectiveController.text.isNotEmpty;
     final List<Widget> actions = [];
 
@@ -113,7 +115,7 @@ class _FormTextInputState extends State<FormTextInput> {
       actions.add(IconButton(
         padding: EdgeInsets.all(AppDimensions.spacingXSmall),
         constraints: const BoxConstraints(),
-        tooltip: 'Clear',
+        tooltip: s.clear,
         icon: Icon(Icons.close, size: AppDimensions.iconSmall, color: theme.iconTheme.color),
         onPressed: () {
           _effectiveController.clear();

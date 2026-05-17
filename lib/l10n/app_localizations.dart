@@ -554,6 +554,324 @@ abstract class AppLocalizations {
   /// **'People'**
   String get chatTitle;
 
+  /// No description provided for @calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get calendar;
+
+  /// No description provided for @cambodiaCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Cambodia Calendar'**
+  String get cambodiaCalendar;
+
+  /// No description provided for @calendarSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public holidays & national events'**
+  String get calendarSubtitle;
+
+  /// No description provided for @noEventsOnThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No events on this day'**
+  String get noEventsOnThisDay;
+
+  /// No description provided for @upcomingEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Events'**
+  String get upcomingEvents;
+
+  /// No description provided for @eventTypePublicHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Holiday'**
+  String get eventTypePublicHoliday;
+
+  /// No description provided for @eventTypeRoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal'**
+  String get eventTypeRoyal;
+
+  /// No description provided for @eventTypeCultural.
+  ///
+  /// In en, this message translates to:
+  /// **'Cultural'**
+  String get eventTypeCultural;
+
+  /// No description provided for @eventTypeInternational.
+  ///
+  /// In en, this message translates to:
+  /// **'International'**
+  String get eventTypeInternational;
+
+  /// No description provided for @eventTypeReligious.
+  ///
+  /// In en, this message translates to:
+  /// **'Religious'**
+  String get eventTypeReligious;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back'**
+  String get welcomeBack;
+
+  /// No description provided for @signInToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your account'**
+  String get signInToAccount;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @enterYourEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get enterYourEmail;
+
+  /// No description provided for @pleaseEnterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email'**
+  String get pleaseEnterEmail;
+
+  /// No description provided for @pleaseEnterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get pleaseEnterValidEmail;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @enterYourPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enterYourPassword;
+
+  /// No description provided for @pleaseEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a password'**
+  String get pleaseEnterPassword;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordMinLength;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @reEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get reEnterPassword;
+
+  /// No description provided for @pleaseConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your password'**
+  String get pleaseConfirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @logIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Log In'**
+  String get logIn;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// No description provided for @signUpToGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up to get started'**
+  String get signUpToGetStarted;
+
+  /// No description provided for @appTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture ideas, organize tasks,\nand stay on top of everything.'**
+  String get appTagline;
+
+  /// No description provided for @captureEveryThought.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture every thought'**
+  String get captureEveryThought;
+
+  /// No description provided for @forgotPasswordQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPasswordQ;
+
+  /// No description provided for @forgotPasswordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we\'ll send you a link to reset your password.'**
+  String get forgotPasswordDesc;
+
+  /// No description provided for @sendResetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get sendResetLink;
+
+  /// No description provided for @checkYourEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Your Email'**
+  String get checkYourEmail;
+
+  /// No description provided for @resetEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a password reset link to'**
+  String get resetEmailSent;
+
+  /// No description provided for @backToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
+  String get backToLogin;
+
+  /// No description provided for @setUpProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Up Your Profile'**
+  String get setUpProfile;
+
+  /// No description provided for @addPhotoAndConfirmName.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo and confirm your name'**
+  String get addPhotoAndConfirmName;
+
+  /// No description provided for @saveAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Continue'**
+  String get saveAndContinue;
+
+  /// No description provided for @displayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Name'**
+  String get displayName;
+
+  /// No description provided for @yourDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name'**
+  String get yourDisplayName;
+
+  /// No description provided for @pleaseEnterDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your display name'**
+  String get pleaseEnterDisplayName;
+
+  /// No description provided for @profilePhotoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A profile photo is required'**
+  String get profilePhotoRequired;
+
+  /// No description provided for @tapToChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to change photo'**
+  String get tapToChangePhoto;
+
+  /// No description provided for @tapToAddPhotoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add photo  •  Required'**
+  String get tapToAddPhotoRequired;
+
+  /// No description provided for @choosePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Photo'**
+  String get choosePhoto;
+
+  /// No description provided for @camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @photoLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo Library'**
+  String get photoLibrary;
+
+  /// No description provided for @profileAllSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome! Your profile is all set. 🎉'**
+  String get profileAllSet;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
   /// No description provided for @chatSearchHint.
   ///
   /// In en, this message translates to:
@@ -625,6 +943,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}d ago'**
   String daysAgo(int count);
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
 }
 
 class _AppLocalizationsDelegate

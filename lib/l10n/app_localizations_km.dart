@@ -240,6 +240,167 @@ class AppLocalizationsKm extends AppLocalizations {
   String get chatTitle => 'អ្នក​ប្រើ';
 
   @override
+  String get calendar => 'ប្រតិទិន';
+
+  @override
+  String get cambodiaCalendar => 'ប្រតិទិន​កម្ពុជា';
+
+  @override
+  String get calendarSubtitle => 'ថ្ងៃឈប់សម្រាក និងព្រឹត្តិការណ៍ជាតិ';
+
+  @override
+  String get noEventsOnThisDay => 'មិនមានព្រឹត្តិការណ៍នៅថ្ងៃនេះ';
+
+  @override
+  String get upcomingEvents => 'ព្រឹត្តិការណ៍ខាងមុខ';
+
+  @override
+  String get eventTypePublicHoliday => 'ថ្ងៃឈប់សម្រាក';
+
+  @override
+  String get eventTypeRoyal => 'ព្រះរាជ';
+
+  @override
+  String get eventTypeCultural => 'វប្បធម៌';
+
+  @override
+  String get eventTypeInternational => 'អន្តរជាតិ';
+
+  @override
+  String get eventTypeReligious => 'សាសនា';
+
+  @override
+  String get welcomeBack => 'សូមស្វាគមន៍មកវិញ';
+
+  @override
+  String get signInToAccount => 'ចូលទៅគណនីរបស់អ្នក';
+
+  @override
+  String get email => 'អ៊ីម៉ែល';
+
+  @override
+  String get enterYourEmail => 'បញ្ចូលអ៊ីម៉ែលរបស់អ្នក';
+
+  @override
+  String get pleaseEnterEmail => 'សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នក';
+
+  @override
+  String get pleaseEnterValidEmail => 'សូមបញ្ចូលអ៊ីម៉ែលត្រឹមត្រូវ';
+
+  @override
+  String get password => 'ពាក្យសម្ងាត់';
+
+  @override
+  String get enterYourPassword => 'បញ្ចូលពាក្យសម្ងាត់របស់អ្នក';
+
+  @override
+  String get pleaseEnterPassword => 'សូមបញ្ចូលពាក្យសម្ងាត់';
+
+  @override
+  String get passwordMinLength => 'ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៦ តួអក្សរ';
+
+  @override
+  String get confirmPassword => 'បញ្ជាក់ពាក្យសម្ងាត់';
+
+  @override
+  String get reEnterPassword => 'បញ្ចូលពាក្យសម្ងាត់ម្តងទៀត';
+
+  @override
+  String get pleaseConfirmPassword => 'សូមបញ្ជាក់ពាក្យសម្ងាត់';
+
+  @override
+  String get passwordsDoNotMatch => 'ពាក្យសម្ងាត់មិនត្រូវគ្នា';
+
+  @override
+  String get alreadyHaveAccount => 'មានគណនីរួចហើយ?';
+
+  @override
+  String get logIn => 'ចូល';
+
+  @override
+  String get dontHaveAccount => 'មិនមានគណនីទេ?';
+
+  @override
+  String get signUp => 'ចុះឈ្មោះ';
+
+  @override
+  String get createAccount => 'បង្កើតគណនី';
+
+  @override
+  String get signUpToGetStarted => 'ចុះឈ្មោះដើម្បីចាប់ផ្តើម';
+
+  @override
+  String get appTagline =>
+      'ចាប់យករបស់គំនិត ​រៀបចំកិច្ចការ\nហើយគ្រប់គ្រងរាល់អ្វីៗ';
+
+  @override
+  String get captureEveryThought => 'ចាប់យករាល់គំនិត';
+
+  @override
+  String get forgotPasswordQ => 'ភ្លេចពាក្យសម្ងាត់?';
+
+  @override
+  String get forgotPasswordDesc =>
+      'បញ្ចូលអ៊ីម៉ែលរបស់អ្នក ហើយយើងនឹងផ្ញើតំណភ្ជាប់ ដើម្បីកំណត់ពាក្យសម្ងាត់ឡើងវិញ';
+
+  @override
+  String get sendResetLink => 'ផ្ញើតំណភ្ជាប់';
+
+  @override
+  String get checkYourEmail => 'ពិនិត្យអ៊ីម៉ែល';
+
+  @override
+  String get resetEmailSent => 'យើងបានផ្ញើតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ទៅ';
+
+  @override
+  String get backToLogin => 'ត្រឡប់ទៅចូល';
+
+  @override
+  String get setUpProfile => 'រៀបចំប្រវត្តិរូប';
+
+  @override
+  String get addPhotoAndConfirmName => 'បន្ថែមរូបថត ហើយបញ្ជាក់ឈ្មោះ';
+
+  @override
+  String get saveAndContinue => 'រក្សាទុក និងបន្ត';
+
+  @override
+  String get displayName => 'ឈ្មោះបង្ហាញ';
+
+  @override
+  String get yourDisplayName => 'ឈ្មោះបង្ហាញរបស់អ្នក';
+
+  @override
+  String get pleaseEnterDisplayName => 'សូមបញ្ចូលឈ្មោះបង្ហាញ';
+
+  @override
+  String get profilePhotoRequired => 'ត្រូវការរូបភាពប្រវត្តិរូប';
+
+  @override
+  String get tapToChangePhoto => 'ចុចដើម្បីផ្លាស់ប្តូររូបភាព';
+
+  @override
+  String get tapToAddPhotoRequired => 'ចុចដើម្បីបន្ថែមរូបភាព  •  ចាំបាច់';
+
+  @override
+  String get choosePhoto => 'ជ្រើសរើសរូបភាព';
+
+  @override
+  String get camera => 'កាមេរ៉ា';
+
+  @override
+  String get photoLibrary => 'បណ្ណសារ​រូបភាព';
+
+  @override
+  String get profileAllSet => 'សូមស្វាគមន៍! ប្រវត្តិរូបរបស់អ្នករៀបចំរួចហើយ។ 🎉';
+
+  @override
+  String get back => 'ត្រឡប់ក្រោយ';
+
+  @override
+  String get ok => 'យល់ព្រម';
+
+  @override
   String get chatSearchHint => 'ស្វែងរក​អ្នក​ប្រើ...';
 
   @override
@@ -281,4 +442,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String daysAgo(int count) {
     return '$countថ្ងៃកាលពីមុន';
   }
+
+  @override
+  String get today => 'ថ្ងៃនេះ';
 }

@@ -11,6 +11,7 @@ import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/presentation/pages/main_page.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -133,6 +134,7 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
     final primary = context.primaryColor;
     final isDark = context.isDark;
     final size = MediaQuery.sizeOf(context);
@@ -228,13 +230,13 @@ class _LoginPageState extends State<LoginPage>
                                   position: _titleSlide,
                                   child: Column(
                                     children: [
-                                      Text('Welcome Back',
+                                      Text(s.welcomeBack,
                                           style: AppFonts.heading2.copyWith(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
                                               letterSpacing: -0.5)),
                                       const SizedBox(height: 4),
-                                      Text('Sign in to your account',
+                                      Text(s.signInToAccount,
                                           style: AppFonts.bodyMedium.copyWith(
                                               color: Colors.white.withValues(alpha: 0.78))),
                                     ],
@@ -285,16 +287,16 @@ class _LoginPageState extends State<LoginPage>
                                     opacity: _field1Opacity,
                                     child: SlideTransition(position: _field1Slide, child: child)),
                                 child: _AuthField(
-                                  label: 'Email',
-                                  hint: 'Enter your email',
+                                  label: s.email,
+                                  hint: s.enterYourEmail,
                                   controller: _emailController,
                                   icon: Icons.email_outlined,
                                   keyboardType: TextInputType.emailAddress,
                                   onChanged: (_) => _clearAuthError(),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Please enter your email';
+                                    if (v == null || v.isEmpty) return s.pleaseEnterEmail;
                                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                                      return 'Please enter a valid email';
+                                      return s.pleaseEnterValidEmail;
                                     }
                                     return null;
                                   },
@@ -309,14 +311,14 @@ class _LoginPageState extends State<LoginPage>
                                     opacity: _field2Opacity,
                                     child: SlideTransition(position: _field2Slide, child: child)),
                                 child: _AuthField(
-                                  label: 'Password',
-                                  hint: 'Enter your password',
+                                  label: s.password,
+                                  hint: s.enterYourPassword,
                                   controller: _passwordController,
                                   icon: Icons.lock_outline_rounded,
                                   obscureText: true,
                                   onChanged: (_) => _clearAuthError(),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Please enter your password';
+                                    if (v == null || v.isEmpty) return s.pleaseEnterPassword;
                                     if (_authError != null) return _authError;
                                     return null;
                                   },
@@ -338,7 +340,7 @@ class _LoginPageState extends State<LoginPage>
                                         foregroundColor: primary,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 4, vertical: 8)),
-                                    child: Text('Forgot Password?',
+                                    child: Text(s.forgotPasswordQ,
                                         style: AppFonts.bodySmall.copyWith(
                                             color: primary, fontWeight: FontWeight.w600)),
                                   ),
@@ -353,7 +355,7 @@ class _LoginPageState extends State<LoginPage>
                                     opacity: _btnOpacity,
                                     child: ScaleTransition(scale: _btnScale, child: child)),
                                 child: _AuthButton(
-                                    label: 'Log In',
+                                    label: s.logIn,
                                     isLoading: _isLoading,
                                     onPressed: _submit),
                               ),
@@ -367,7 +369,7 @@ class _LoginPageState extends State<LoginPage>
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("Don't have an account?",
+                                    Text(s.dontHaveAccount,
                                         style: AppFonts.bodySmall.copyWith(
                                             color: AppColors.getTextSecondary(context)
                                                 .withValues(alpha: 0.7))),
@@ -379,7 +381,7 @@ class _LoginPageState extends State<LoginPage>
                                           foregroundColor: primary,
                                           padding:
                                               const EdgeInsets.symmetric(horizontal: 6)),
-                                      child: Text('Sign Up',
+                                      child: Text(s.signUp,
                                           style: AppFonts.bodySmall.copyWith(
                                               color: primary, fontWeight: FontWeight.bold)),
                                     ),

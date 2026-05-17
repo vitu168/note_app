@@ -8,6 +8,7 @@ import 'package:note_app/core/presentation/components/form_text_input.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -129,6 +130,7 @@ class _SignUpPageState extends State<SignUpPage>
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
     final primary = context.primaryColor;
     final isDark = context.isDark;
     final size = MediaQuery.sizeOf(context);
@@ -222,13 +224,13 @@ class _SignUpPageState extends State<SignUpPage>
                                   position: _titleSlide,
                                   child: Column(
                                     children: [
-                                      Text('Create Account',
+                                      Text(s.createAccount,
                                           style: AppFonts.heading2.copyWith(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
                                               letterSpacing: -0.5)),
                                       const SizedBox(height: 4),
-                                      Text('Sign up to get started',
+                                      Text(s.signUpToGetStarted,
                                           style: AppFonts.bodyMedium.copyWith(
                                               color: Colors.white.withValues(alpha: 0.78))),
                                     ],
@@ -279,15 +281,15 @@ class _SignUpPageState extends State<SignUpPage>
                                     opacity: _field1Opacity,
                                     child: SlideTransition(position: _field1Slide, child: child)),
                                 child: _AuthField(
-                                  label: 'Email',
-                                  hint: 'Enter your email',
+                                  label: s.email,
+                                  hint: s.enterYourEmail,
                                   controller: _emailController,
                                   icon: Icons.email_outlined,
                                   keyboardType: TextInputType.emailAddress,
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Please enter your email';
+                                    if (v == null || v.isEmpty) return s.pleaseEnterEmail;
                                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                                      return 'Please enter a valid email';
+                                      return s.pleaseEnterValidEmail;
                                     }
                                     return null;
                                   },
@@ -302,14 +304,14 @@ class _SignUpPageState extends State<SignUpPage>
                                     opacity: _field2Opacity,
                                     child: SlideTransition(position: _field2Slide, child: child)),
                                 child: _AuthField(
-                                  label: 'Password',
-                                  hint: 'Enter your password',
+                                  label: s.password,
+                                  hint: s.enterYourPassword,
                                   controller: _passwordController,
                                   icon: Icons.lock_outline_rounded,
                                   obscureText: true,
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Please enter a password';
-                                    if (v.length < 6) return 'Password must be at least 6 characters';
+                                    if (v == null || v.isEmpty) return s.pleaseEnterPassword;
+                                    if (v.length < 6) return s.passwordMinLength;
                                     return null;
                                   },
                                 ),
@@ -323,14 +325,14 @@ class _SignUpPageState extends State<SignUpPage>
                                     opacity: _field3Opacity,
                                     child: SlideTransition(position: _field3Slide, child: child)),
                                 child: _AuthField(
-                                  label: 'Confirm Password',
-                                  hint: 'Re-enter your password',
+                                  label: s.confirmPassword,
+                                  hint: s.reEnterPassword,
                                   controller: _confirmController,
                                   icon: Icons.lock_reset_rounded,
                                   obscureText: true,
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Please confirm your password';
-                                    if (v != _passwordController.text) return 'Passwords do not match';
+                                    if (v == null || v.isEmpty) return s.pleaseConfirmPassword;
+                                    if (v != _passwordController.text) return s.passwordsDoNotMatch;
                                     return null;
                                   },
                                 ),
@@ -344,7 +346,7 @@ class _SignUpPageState extends State<SignUpPage>
                                     opacity: _btnOpacity,
                                     child: ScaleTransition(scale: _btnScale, child: child)),
                                 child: _AuthButton(
-                                    label: 'Create Account',
+                                    label: s.createAccount,
                                     isLoading: _isLoading,
                                     onPressed: _submit),
                               ),
@@ -358,7 +360,7 @@ class _SignUpPageState extends State<SignUpPage>
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text('Already have an account?',
+                                    Text(s.alreadyHaveAccount,
                                         style: AppFonts.bodySmall.copyWith(
                                             color: AppColors.getTextSecondary(context)
                                                 .withValues(alpha: 0.7))),
@@ -368,7 +370,7 @@ class _SignUpPageState extends State<SignUpPage>
                                           foregroundColor: primary,
                                           padding:
                                               const EdgeInsets.symmetric(horizontal: 6)),
-                                      child: Text('Log In',
+                                      child: Text(s.logIn,
                                           style: AppFonts.bodySmall.copyWith(
                                               color: primary, fontWeight: FontWeight.bold)),
                                     ),

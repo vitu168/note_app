@@ -53,7 +53,7 @@ class MenuDrawer extends StatelessWidget {
                 children: [
                   _buildItem(context, index: 0, icon: Icons.home_rounded, label: strings.home),
                   _buildItem(context, index: 1, icon: Icons.people_rounded, label: strings.chatTitle),
-                  _buildItem(context, index: 2, icon: Icons.archive_rounded, label: strings.archive),
+                  _buildItem(context, index: 2, icon: Icons.calendar_month_rounded, label: strings.calendar),
                   const Divider(),
                   _buildItem(context, index: 3, icon: Icons.settings_rounded, label: strings.settings),
                   const SizedBox(height: AppDimensions.spacingLarge),

@@ -14,6 +14,7 @@ import 'package:note_app/core/presentation/widgets/components/toast_helper.dart'
 import 'package:note_app/core/services/storage_service.dart';
 import 'package:note_app/core/services/user_profile_api_service.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 /// Shown immediately after sign-up so the user can add a photo and
 /// confirm their display name before their profile is saved to the
@@ -148,6 +149,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDark = ctx.isDark;
+        final ls = AppLocalizations.of(ctx);
         return Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -166,18 +168,18 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                       color: Colors.grey.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(2)),
                 ),
-                Text('Choose Photo',
+                Text(ls.choosePhoto,
                     style: AppFonts.bodyMedium
                         .copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 ListTile(
                   leading: const Icon(Icons.camera_alt_rounded),
-                  title: Text('Camera', style: AppFonts.bodyMedium),
+                  title: Text(ls.camera, style: AppFonts.bodyMedium),
                   onTap: () => Navigator.pop(ctx, ImageSource.camera),
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_library_rounded),
-                  title: Text('Photo Library', style: AppFonts.bodyMedium),
+                  title: Text(ls.photoLibrary, style: AppFonts.bodyMedium),
                   onTap: () => Navigator.pop(ctx, ImageSource.gallery),
                 ),
                 const SizedBox(height: 8),
@@ -248,7 +250,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
       if (!mounted) return;
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (_) => const MainPage()));
-      showToast(context, 'Welcome! Your profile is all set. 🎉',
+      showToast(context, AppLocalizations.of(context).profileAllSet,
           type: ToastType.success,
           duration: const Duration(seconds: 4),
           icon: Icons.celebration,
@@ -265,6 +267,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
     final primary = context.primaryColor;
     final isDark = context.isDark;
     final size = MediaQuery.sizeOf(context);
@@ -364,13 +367,13 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                                 position: _titleSlide,
                                 child: Column(
                                   children: [
-                                    Text('Set Up Your Profile',
+                                    Text(s.setUpProfile,
                                         style: AppFonts.heading2.copyWith(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                             letterSpacing: -0.5)),
                                     const SizedBox(height: 4),
-                                    Text('Add a photo and confirm your name',
+                                    Text(s.addPhotoAndConfirmName,
                                         style: AppFonts.bodyMedium.copyWith(
                                             color: Colors.white
                                                 .withValues(alpha: 0.78))),
@@ -510,15 +513,15 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                                         const SizedBox(height: 10),
                                         if (_avatarError)
                                           Text(
-                                              'A profile photo is required',
+                                              s.profilePhotoRequired,
                                               style: AppFonts.bodySmall
                                                   .copyWith(
                                                       color: AppColors.error))
                                         else
                                           Text(
                                               _pickedImage != null
-                                                  ? 'Tap to change photo'
-                                                  : 'Tap to add photo  •  Required',
+                                                  ? s.tapToChangePhoto
+                                                  : s.tapToAddPhotoRequired,
                                               style: AppFonts.bodySmall
                                                   .copyWith(
                                                       color: AppColors
@@ -545,7 +548,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('Display Name',
+                                      Text(s.displayName,
                                           style: AppFonts.bodySmall.copyWith(
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.getTextSecondary(
@@ -553,7 +556,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                                       const SizedBox(height: 8),
                                       FormTextInput(
                                         controller: _nameController,
-                                        hintText: 'Your display name',
+                                        hintText: s.yourDisplayName,
                                         prefixIcon: Icon(
                                             Icons.person_outline_rounded,
                                             color: primary,
@@ -561,7 +564,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                                         validator: (v) {
                                           if (v == null ||
                                               v.trim().isEmpty) {
-                                            return 'Please enter your display name';
+                                            return s.pleaseEnterDisplayName;
                                           }
                                           return null;
                                         },
@@ -647,7 +650,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage>
                                                       AlwaysStoppedAnimation<
                                                               Color>(
                                                           Colors.white)))
-                                          : Text('Save & Continue',
+                                          : Text(s.saveAndContinue,
                                               style: AppFonts.labelLargeBold
                                                   .copyWith(
                                                       letterSpacing: 0.5)),

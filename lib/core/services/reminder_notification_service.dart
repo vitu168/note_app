@@ -40,7 +40,6 @@ class ReminderNotificationService {
       tz.setLocalLocation(tz.getLocation(localName));
     } catch (_) {
       // Fallback: leave default UTC. Reminders still fire, just shifted in
-      // edge cases where the device timezone isn't resolvable.
     }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');

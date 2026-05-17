@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/presentation/auth/login_page.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 import '../pages/main_page.dart';
 
 class WelcomePage extends StatefulWidget {
@@ -158,6 +159,7 @@ class _WelcomePageState extends State<WelcomePage>
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
     final screenHeight = MediaQuery.sizeOf(context).height;
     final primary = context.primaryColor;
     final isDark = context.isDark;
@@ -247,9 +249,31 @@ class _WelcomePageState extends State<WelcomePage>
                         opacity: _logoOpacity,
                         child: SlideTransition(
                           position: _logoSlide,
-                          child: Image.asset(
-                            'assets/app_logo.png',
-                            fit: BoxFit.contain,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(38),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: primary.withValues(alpha: 0.45),
+                                  blurRadius: 48,
+                                  spreadRadius: 6,
+                                  offset: const Offset(0, 16),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                width: 3,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(36),
+                              child: Image.asset(
+                                'assets/app_logo.png',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -282,7 +306,7 @@ class _WelcomePageState extends State<WelcomePage>
                     child: SlideTransition(
                       position: _subtitleSlide,
                       child: Text(
-                        'Capture ideas, organize tasks,\nand stay on top of everything.',
+                        s.appTagline,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: subtitleColor,
@@ -306,7 +330,7 @@ class _WelcomePageState extends State<WelcomePage>
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.arrow_forward_rounded, size: 20),
                           label: Text(
-                            'Get Started',
+                            s.getStarted,
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -346,7 +370,7 @@ class _WelcomePageState extends State<WelcomePage>
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.person_outline_rounded, size: 20),
                           label: Text(
-                            'Continue with Guest',
+                            s.continueWithGuest,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,

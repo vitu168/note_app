@@ -6,6 +6,7 @@ import 'package:note_app/core/data/services/custom_auth_service.dart';
 import 'package:note_app/core/presentation/components/form_text_input.dart';
 import 'package:note_app/core/presentation/widgets/components/toast_helper.dart';
 import 'package:note_app/core/presentation/components/toast.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -52,6 +53,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -65,13 +67,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: _submitted ? _buildSuccessView() : _buildFormView(),
+          child: _submitted ? _buildSuccessView(context, s) : _buildFormView(context, s),
         ),
       ),
     );
   }
 
-  Widget _buildFormView() {
+  Widget _buildFormView(BuildContext context, AppLocalizations s) {
     return Form(
       key: _formKey,
       child: Column(
@@ -81,7 +83,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           Icon(Icons.lock_reset, size: 72, color: AppColors.primary),
           const SizedBox(height: 24),
           Text(
-            'Forgot Password?',
+            s.forgotPasswordQ,
             style: AppFonts.heading2.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.bold,
@@ -90,7 +92,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Enter your email address and we\'ll send you a link to reset your password.',
+            s.forgotPasswordDesc,
             style: AppFonts.bodyMedium.copyWith(
               color: AppColors.getTextSecondary(context).withOpacity(0.7),
             ),
@@ -98,14 +100,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
           const SizedBox(height: AppDimensions.spacingMedium),
           FormTextInput(
-            label: 'Email',
-            hintText: 'Enter your email',
+            label: s.email,
+            hintText: s.enterYourEmail,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
-              if (v == null || v.isEmpty) return 'Please enter your email';
+              if (v == null || v.isEmpty) return s.pleaseEnterEmail;
               if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                return 'Please enter a valid email';
+                return s.pleaseEnterValidEmail;
               }
               return null;
             },
@@ -146,14 +148,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
               elevation: AppDimensions.elevationLow,
             ),
-            child: Text('Send Reset Link', style: AppFonts.labelLargeBold),
+            child: Text(s.sendResetLink, style: AppFonts.labelLargeBold),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSuccessView() {
+  Widget _buildSuccessView(BuildContext context, AppLocalizations s) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,7 +163,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         Icon(Icons.mark_email_read, size: 80, color: AppColors.primary),
         const SizedBox(height: 24),
         Text(
-          'Check Your Email',
+          s.checkYourEmail,
           style: AppFonts.heading2.copyWith(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
@@ -170,7 +172,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
         const SizedBox(height: 12),
         Text(
-          'We sent a password reset link to\n${_emailController.text.trim()}',
+          '${s.resetEmailSent}\n${_emailController.text.trim()}',
           style: AppFonts.bodyMedium.copyWith(
             color: AppColors.getTextSecondary(context).withOpacity(0.7),
           ),
@@ -187,7 +189,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
             ),
           ),
-          child: Text('Back to Login', style: AppFonts.labelLargeBold),
+          child: Text(s.backToLogin, style: AppFonts.labelLargeBold),
         ),
       ],
     );

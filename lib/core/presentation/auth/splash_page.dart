@@ -164,21 +164,25 @@ class _SplashPageState extends State<SplashPage>
                           child: ScaleTransition(
                             scale: _logoScale,
                             child: Container(
-                              width: 140,
-                              height: 140,
+                              width: 150,
+                              height: 150,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(32),
+                                borderRadius: BorderRadius.circular(38),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: primary.withValues(alpha: 0.40),
-                                    blurRadius: 40,
-                                    spreadRadius: 4,
-                                    offset: const Offset(0, 14),
+                                    color: primary.withValues(alpha: 0.45),
+                                    blurRadius: 48,
+                                    spreadRadius: 6,
+                                    offset: const Offset(0, 16),
                                   ),
                                 ],
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  width: 3,
+                                ),
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(32),
+                                borderRadius: BorderRadius.circular(36),
                                 child: Image.asset(
                                   'assets/app_logo.png',
                                   fit: BoxFit.cover,

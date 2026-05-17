@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_app/core/theme/app_context_ext.dart';
+import 'package:note_app/l10n/app_localizations.dart';
 
 class AppPageHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -19,6 +20,7 @@ class AppPageHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.appTheme;
+    final s = AppLocalizations.of(context);
 
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -29,7 +31,7 @@ class AppPageHeader extends StatelessWidget implements PreferredSizeWidget {
           ? Padding(
               padding: const EdgeInsets.only(left: 8),
               child: IconButton(
-                tooltip: 'Back',
+                tooltip: s.back,
                 icon: Container(
                   width: 36,
                   height: 36,

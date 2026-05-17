@@ -38,6 +38,12 @@ class NoteApiService {
   final ApiService _api = ApiService();
 
   Map<String, dynamic> _userIdHeader(String userId) => {'X-User-Id': userId};
+  String _toNaiveIso(DateTime dt) {
+    final d = dt.isUtc ? dt.toLocal() : dt;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${d.year.toString().padLeft(4, '0')}-${two(d.month)}-${two(d.day)}'
+        'T${two(d.hour)}:${two(d.minute)}:${two(d.second)}';
+  }
 
   /// GET /api/NoteInfo
   Future<List<NoteInfo>> getNotes({
@@ -68,10 +74,6 @@ class NoteApiService {
     return NoteInfo.fromJson(data as Map<String, dynamic>);
   }
 
-  /// POST /api/NoteInfo
-  ///
-  /// If [userIds] is non-empty, the first element is the owner and the rest
-  /// become viewers. Otherwise [userId] is used as the legacy single-owner.
   Future<NoteInfo> createNote({
     required String name,
     String? description,
@@ -84,7 +86,7 @@ class NoteApiService {
       'name': name,
       'description': description,
       'isFavorites': isFavorites,
-      if (reminder != null) 'reminder': reminder.toUtc().toIso8601String(),
+      if (reminder != null) 'reminder': _toNaiveIso(reminder),
     };
     if (userIds != null && userIds.isNotEmpty) {
       body['userIds'] = userIds;
@@ -95,11 +97,6 @@ class NoteApiService {
     return NoteInfo.fromJson(data as Map<String, dynamic>);
   }
 
-  /// PUT /api/NoteInfo/{id}
-  ///
-  /// Requires [actingUserId] (X-User-Id header). The acting user must have
-  /// at least edit permission. If [userIds] is provided, the request additionally
-  /// requires owner role (replaces the entire share list, first element = owner).
   Future<void> updateNote({
     required int id,
     required String actingUserId,
@@ -120,7 +117,7 @@ class NoteApiService {
     if (clearReminder) {
       body['reminder'] = null;
     } else if (reminder != null) {
-      body['reminder'] = reminder.toUtc().toIso8601String();
+      body['reminder'] = _toNaiveIso(reminder);
     }
     await _api.put(
       '/api/NoteInfo/$id',
@@ -129,7 +126,7 @@ class NoteApiService {
     );
   }
 
-  /// DELETE /api/NoteInfo/{id} — hard-delete for everyone (owner/deleter only).
+
   Future<void> deleteNote(int id, {required String actingUserId}) async {
     await _api.delete(
       '/api/NoteInfo/$id',
@@ -146,9 +143,6 @@ class NoteApiService {
     return data as Map<String, dynamic>;
   }
 
-  // ── Sharing & permissions ──────────────────────────────────────────────────
-
-  /// GET /api/NoteInfo/{id}/shares — owner returned first.
   Future<List<NoteShare>> getShares(int noteId,
       {required String actingUserId}) async {
     final data = await _api.get(
@@ -161,8 +155,7 @@ class NoteApiService {
         .toList();
   }
 
-  /// POST /api/NoteInfo/{id}/share — owner-only.
-  /// [role] must be one of: deleter, editor, viewer.
+  /// Share note with a single user
   Future<NoteShare> shareNote({
     required int noteId,
     required String actingUserId,
@@ -179,6 +172,30 @@ class NoteApiService {
       userId: (json['userId'] ?? userId).toString(),
       role: (json['role'] ?? role).toString(),
     );
+  }
+
+  Future<List<NoteShare>> shareNoteWithMultiple({
+    required int noteId,
+    required String actingUserId,
+    required List<String> userIds,
+    required String role,
+  }) async {
+    final data = await _api.post(
+      '/api/NoteInfo/$noteId/share',
+      data: {'userIds': userIds, 'role': role},
+      headers: _userIdHeader(actingUserId),
+    );
+    final json = data as Map<String, dynamic>;
+    final shared = (json['shared'] as List<dynamic>?) ?? [];
+    return shared
+        .map((e) {
+          final m = e as Map<String, dynamic>;
+          return NoteShare(
+            userId: (m['userId'] ?? '').toString(),
+            role: (m['role'] ?? '').toString(),
+          );
+        })
+        .toList();
   }
 
   /// PUT /api/NoteInfo/{id}/share/{userId} — change a user's role (owner-only).
@@ -198,6 +215,33 @@ class NoteApiService {
       userId: (json['userId'] ?? targetUserId).toString(),
       role: (json['role'] ?? role).toString(),
     );
+  }
+
+  Future<List<NoteShare>> batchChangeShareRoles({
+    required int noteId,
+    required String actingUserId,
+    required Map<String, String> userRoleMap,
+  }) async {
+    final users = userRoleMap.entries
+        .map((e) => {'userId': e.key, 'role': e.value})
+        .toList();
+
+    final data = await _api.put(
+      '/api/NoteInfo/$noteId/share',
+      data: {'users': users},
+      headers: _userIdHeader(actingUserId),
+    );
+    final json = data as Map<String, dynamic>;
+    final updated = (json['updated'] as List<dynamic>?) ?? [];
+    return updated
+        .map((e) {
+          final m = e as Map<String, dynamic>;
+          return NoteShare(
+            userId: (m['userId'] ?? '').toString(),
+            role: (m['role'] ?? '').toString(),
+          );
+        })
+        .toList();
   }
 
   /// DELETE /api/NoteInfo/{id}/share/{userId} — revoke another user's access.
